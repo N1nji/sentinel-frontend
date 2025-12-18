@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
@@ -104,9 +104,9 @@ export default function Entregas() {
     setLoading(true);
     try {
       const [resEnt, resEpis, resCols] = await Promise.all([
-        axios.get("http://localhost:4000/entregas", { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get("http://localhost:4000/epis", { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get("http://localhost:4000/colaboradores", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("/entregas", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("/epis", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("/colaboradores", { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       setEntregas(resEnt.data.data || resEnt.data);
       setEpis(resEpis.data);
@@ -228,7 +228,7 @@ function saveSignature() {
     try {
       setLoading(true);
       const payload = { colaboradorId, epiId, quantidade, observacao, assinaturaBase64 };
-      await axios.post("http://localhost:4000/entregas", payload, { headers: { Authorization: `Bearer ${token}` } });
+      await api.post("/entregas", payload, { headers: { Authorization: `Bearer ${token}` } });
       setOpenModal(false);
       clearSignature();
       load();
@@ -244,7 +244,7 @@ function saveSignature() {
     if (!deleteId) return;
     try {
       setLoading(true);
-      await axios.delete(`http://localhost:4000/entregas/${deleteId}`, { headers: { Authorization: `Bearer ${token}` } });
+      await api.delete(`/entregas/${deleteId}`, { headers: { Authorization: `Bearer ${token}` } });
       setOpenDelete(false);
       setDeleteId(null);
       load();
@@ -262,8 +262,8 @@ function saveSignature() {
   try {
     setDevolucaoLoading(true);
 
-    await axios.post(
-      `http://localhost:4000/entregas/${devolucaoEntrega._id}/devolucao`,
+    await api.post(
+      `/entregas/${devolucaoEntrega._id}/devolucao`,
       { observacao: devolucaoObs, assinaturaBase64: assinaturaDevolucaoBase64 },
       { headers: { Authorization: `Bearer ${token}` } }
     );

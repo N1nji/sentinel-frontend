@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
@@ -74,11 +74,11 @@ export default function Riscos() {
 
   // ------- CARREGAR --------
   async function load() {
-    const riscosRes = await axios.get("http://localhost:4000/riscos", {
+    const riscosRes = await api.get("/riscos", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const setoresRes = await axios.get("http://localhost:4000/setores", {
+    const setoresRes = await api.get("/setores", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -107,11 +107,11 @@ export default function Riscos() {
     };
 
     if (editingId) {
-      await axios.put(`http://localhost:4000/riscos/${editingId}`, data, {
+      await api.put(`/riscos/${editingId}`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } else {
-      await axios.post("http://localhost:4000/riscos", data, {
+      await api.post("/riscos", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
@@ -134,7 +134,7 @@ export default function Riscos() {
 
   // ------ DELETAR ------
   async function handleDelete(id: string) {
-    await axios.delete(`http://localhost:4000/riscos/${id}`, {
+    await api.delete(`/riscos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setOpenDelete(false);

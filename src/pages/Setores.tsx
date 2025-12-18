@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -42,7 +42,7 @@ export default function Setores() {
   const token = localStorage.getItem("token");
 
   async function load() {
-    const res = await axios.get("http://localhost:4000/setores", {
+    const res = await api.get("/setores", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setSetores(res.data);
@@ -59,14 +59,14 @@ export default function Setores() {
     const data = { nome, descricao };
 
     if (editingId) {
-      await axios.put(
-        `http://localhost:4000/setores/${editingId}`,
+      await api.put(
+        `/setores/${editingId}`,
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } else {
-      await axios.post(
-        "http://localhost:4000/setores",
+      await api.post(
+        "/setores",
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -82,7 +82,7 @@ export default function Setores() {
   }
 
   async function handleDelete(id: string) {
-    await axios.delete(`http://localhost:4000/setores/${id}`, {
+    await api.delete(`/setores/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

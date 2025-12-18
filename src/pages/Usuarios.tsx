@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -48,7 +48,7 @@ export default function Usuarios() {
   // CARREGAR USUÁRIOS
   // -------------------------------------------------------
   async function load() {
-    const res = await axios.get("http://localhost:4000/usuarios", {
+    const res = await api.get("/usuarios", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setUsuarios(res.data);
@@ -65,8 +65,8 @@ export default function Usuarios() {
     e.preventDefault();
 
     if (editingId) {
-      await axios.put(
-        `http://localhost:4000/usuarios/${editingId}`,
+      await api.put(
+        `/usuarios/${editingId}`,
         { nome, email, tipo },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,8 +77,8 @@ export default function Usuarios() {
     }
 
     // criar usuário novo
-    const res = await axios.post(
-      "http://localhost:4000/usuarios",
+    const res = await api.post(
+      "/usuarios",
       { nome, email, tipo },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -92,7 +92,7 @@ export default function Usuarios() {
   // DELETAR
   // -------------------------------------------------------
   async function handleDelete(id: string) {
-    await axios.delete(`http://localhost:4000/usuarios/${id}`, {
+    await api.delete(`/usuarios/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

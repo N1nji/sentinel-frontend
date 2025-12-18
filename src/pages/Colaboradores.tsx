@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -65,12 +65,12 @@ export default function Colaboradores() {
   // CARREGAR DADOS
   // -------------------------------
   async function load() {
-    const res = await axios.get("http://localhost:4000/colaboradores", {
+    const res = await api.get("/colaboradores", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setColaboradores(res.data);
 
-    const setoresRes = await axios.get("http://localhost:4000/setores", {
+    const setoresRes = await api.get("/setores", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setSetores(setoresRes.data);
@@ -97,13 +97,13 @@ export default function Colaboradores() {
     };
 
     if (editingId) {
-      await axios.put(
-        `http://localhost:4000/colaboradores/${editingId}`,
+      await api.put(
+        `/colaboradores/${editingId}`,
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } else {
-      await axios.post("http://localhost:4000/colaboradores", data, {
+      await api.post("/colaboradores", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
@@ -125,7 +125,7 @@ export default function Colaboradores() {
   // DELETAR
   // -------------------------------
   async function handleDelete(id: string) {
-    await axios.delete(`http://localhost:4000/colaboradores/${id}`, {
+    await api.delete(`/colaboradores/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

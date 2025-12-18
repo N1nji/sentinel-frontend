@@ -28,8 +28,8 @@ import {
   generateInsights,
 } from "../services/dashboardService";
 
-const SOCKET_URL = "http://localhost:4000";
-const API_URL = "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL;
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 const PALETTE = ["#8884d8", "#82ca9d", "#ff6b6b", "#ffa502", "#2ed573", "#70a1ff"];
 

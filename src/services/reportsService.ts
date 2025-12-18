@@ -10,7 +10,7 @@ function authHeaders() {
 // --------------------
 // RISCOS POR SETOR
 // --------------------
-export async function getRiscosPorSetor(params: any) {
+export async function getRiscosPorSetor(_params: any) {
   const res = await fetch(`${API_URL}/reports/riscos-por-setor`, {
     headers: authHeaders(),
   });
@@ -20,7 +20,7 @@ export async function getRiscosPorSetor(params: any) {
 // --------------------
 // STATUS DOS EPIs
 // --------------------
-export async function getEpisStatus(params: any) {
+export async function getEpisStatus(_params: any) {
   const res = await fetch(`${API_URL}/reports/epis-status`, {
     headers: authHeaders(),
   });
@@ -30,7 +30,7 @@ export async function getEpisStatus(params: any) {
 // --------------------
 // COLABORADORES POR SETOR
 // --------------------
-export async function getColaboradoresPorSetor(params: any) {
+export async function getColaboradoresPorSetor(_params: any) {
   const res = await fetch(`${API_URL}/reports/colaboradores-por-setor`, {
     headers: authHeaders(),
   });

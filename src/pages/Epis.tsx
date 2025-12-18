@@ -1,6 +1,6 @@
 // src/pages/EPIs.tsx
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
@@ -60,7 +60,7 @@ export default function EPIs() {
   // Carregar lista
   // -------------------------------
   async function load() {
-    const res = await axios.get("http://localhost:4000/epis", {
+    const res = await api.get("/epis", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setEpis(res.data);
@@ -92,13 +92,13 @@ export default function EPIs() {
     };
 
     if (editingId) {
-      await axios.put(
-        `http://localhost:4000/epis/${editingId}`,
+      await api.put(
+        `/epis/${editingId}`,
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } else {
-      await axios.post("http://localhost:4000/epis", data, {
+      await api.post("/epis", data, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
@@ -122,7 +122,7 @@ export default function EPIs() {
   // Deletar
   // -------------------------------
   async function handleDelete(id: string) {
-    await axios.delete(`http://localhost:4000/epis/${id}`, {
+    await api.delete(`/epis/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setOpenDelete(false);
