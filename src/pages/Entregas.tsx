@@ -13,7 +13,8 @@ import {
   CheckBadgeIcon,
   InformationCircleIcon,
   ExclamationTriangleIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  FunnelIcon
 } from "@heroicons/react/24/outline";
 
 interface IEntrega {
@@ -65,6 +66,10 @@ export default function Entregas() {
   const [devolucaoLoading, setDevolucaoLoading] = useState(false);
   const sigPadDevolucaoRef = useRef<any>(null);
 
+  // --- NOVOS STATES DE MELHORIA ---
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
+  const userTipo = localStorage.getItem("userTipo"); // Pega o cargo do user
+  const isAdmin = userTipo === "admin";
   const token = localStorage.getItem("token");
 
   async function load() {
@@ -91,12 +96,17 @@ export default function Entregas() {
 
   useEffect(() => { load(); }, []);
 
-  // PDF TURBINADO: Data, Hora, Validade CA e Matrícula
+  // --- LÓGICA DE FILTRAGEM ---
+  const entregasFiltradas = entregas.filter(en => {
+    if (filtroStatus === "ativos") return !en.devolvida;
+    if (filtroStatus === "devolvidos") return en.devolvida;
+    return true;
+  });
+
   async function generatePdfReceipt(en: IEntrega) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Cabeçalho
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.text("FICHA DE CONTROLE DE EPI", pageWidth / 2, 20, { align: "center" });
@@ -104,58 +114,58 @@ export default function Entregas() {
     doc.setLineWidth(0.5);
     doc.line(10, 25, pageWidth - 10, 25);
 
-    // Texto Jurídico NR-6
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    const termo = `Declaramos para os devidos fins que recebi da empresa os Equipamentos de Proteção Individual (EPIs) abaixo listados, novos e em perfeitas condições de uso, em conformidade com a NR-6 da Portaria 3.214/78. Comprometo-me a utilizá-los apenas para a finalidade a que se destinam e a zelar pela sua guarda e conservação.`;
+    const termo = `Declaramos para os devidos fins que recebi da empresa os Equipamentos de Proteção Individual (EPIs) abaixo listados, novos e em perfeitas condições de uso, em conformidade com a NR-6. Comprometo-me a utilizá-los apenas para a finalidade a que se destinam.`;
     const splitTermo = doc.splitTextToSize(termo, pageWidth - 20);
     doc.text(splitTermo, 10, 35);
 
-    // Dados do Colaborador e Horário
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text(`Colaborador: ${en.colaboradorId?.nome || "---"}`, 10, 55);
     doc.text(`Matrícula: ${en.colaboradorId?.matricula || "---"}`, 120, 55);
     
-    // DATA E HORA DA ENTREGA
     const dataHora = new Date(en.dataEntrega);
-    const dataFormatada = dataHora.toLocaleDateString();
-    const horaFormatada = dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    doc.text(`Data da Entrega: ${dataFormatada} às ${horaFormatada}`, 10, 62);
+    doc.text(`Data da Entrega: ${dataHora.toLocaleDateString()} às ${dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 10, 62);
 
-    // Tabela de Itens (Corrigida e Ampliada)
+    if (en.devolvida && en.dataDevolucao) {
+      const dataDev = new Date(en.dataDevolucao);
+      doc.setTextColor(200, 0, 0);
+      doc.text(`DATA DA DEVOLUÇÃO: ${dataDev.toLocaleDateString()} às ${dataDev.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 10, 68);
+      doc.setTextColor(0, 0, 0);
+    }
+
     doc.setFillColor(245, 245, 245);
-    doc.rect(10, 70, pageWidth - 20, 10, "F");
-    doc.text("Item / Equipamento", 12, 77);
-    doc.text("CA", 100, 77);
-    doc.text("Validade CA", 130, 77);
-    doc.text("Qtd", 175, 77);
+    doc.rect(10, 75, pageWidth - 20, 10, "F");
+    doc.text("Item / Equipamento", 12, 82);
+    doc.text("CA", 100, 82);
+    doc.text("Validade CA", 130, 82);
+    doc.text("Qtd", 175, 82);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(en.epiSnapshot?.nome || en.epiId?.nome || "---", 12, 87);
-    doc.text(String(en.epiSnapshot?.ca || "---"), 100, 87);
-    
-    // VALIDADE DO CA NO PDF
-    const validadeStr = en.epiSnapshot?.validade_ca 
-      ? new Date(en.epiSnapshot.validade_ca).toLocaleDateString() 
-      : "---";
-    doc.text(validadeStr, 130, 87);
-    
-    doc.text(String(en.quantidade), 175, 87);
+    doc.text(en.epiSnapshot?.nome || en.epiId?.nome || "---", 12, 92);
+    doc.text(String(en.epiSnapshot?.ca || "---"), 100, 92);
+    const validadeStr = en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca).toLocaleDateString() : "---";
+    doc.text(validadeStr, 130, 92);
+    doc.text(String(en.quantidade), 175, 92);
 
-    // Área da Assinatura
     if (en.assinaturaBase64) {
       doc.setFont("helvetica", "bold");
-      doc.text("Assinatura do Recebedor:", 10, 115);
-      doc.addImage(en.assinaturaBase64, "PNG", 10, 120, 60, 25);
-      doc.setLineWidth(0.2);
-      doc.line(10, 146, 80, 146);
-      doc.setFontSize(7);
-      doc.text("Documento assinado eletronicamente via Sistema de Gestão de EPI", 10, 150);
+      doc.text("Assinatura do Recebedor (Entrega):", 10, 115);
+      doc.addImage(en.assinaturaBase64, "PNG", 10, 118, 50, 20);
+      doc.line(10, 138, 70, 138);
     }
 
-    // Rodapé
+    if (en.devolvida && en.assinaturaDevolucaoBase64) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Assinatura de Recebimento (Devolução):", 110, 115);
+      doc.addImage(en.assinaturaDevolucaoBase64, "PNG", 110, 118, 50, 20);
+      doc.line(110, 138, 170, 138);
+      doc.setFontSize(8);
+      doc.text(`Motivo/Obs: ${en.observacaoDevolucao || "N/A"}`, 110, 142);
+    }
+
     doc.setFontSize(8);
     doc.text(`ID do Registro: ${en._id}`, 10, 280);
     doc.text(`Recibo gerado em: ${new Date().toLocaleString()}`, 10, 285);
@@ -210,14 +220,21 @@ export default function Entregas() {
   }
 
   async function handleDelete() {
-    await api.delete(`/entregas/${deleteId}`, { headers: { Authorization: `Bearer ${token}` } });
-    setOpenDelete(false);
-    load();
+    try {
+      await api.delete(`/entregas/${deleteId}`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      setOpenDelete(false);
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.erro || "Erro ao excluir: Verifique suas permissões.");
+      setOpenDelete(false);
+    }
   }
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
-      {/* HEADER DASHBOARD */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Entregas de EPI</h1>
@@ -229,7 +246,7 @@ export default function Entregas() {
 
         <div className="flex items-center gap-3">
           {alertLowStock && (
-            <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl border border-amber-200 text-xs font-bold flex items-center gap-2">
+            <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl border border-amber-200 text-xs font-bold flex items-center gap-2 animate-pulse">
               <ExclamationTriangleIcon className="h-4 w-4" /> Estoque Baixo: {alertLowStock}
             </div>
           )}
@@ -239,7 +256,18 @@ export default function Entregas() {
         </div>
       </div>
 
-      {/* LISTAGEM */}
+      {/* FILTROS RÁPIDOS */}
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 text-gray-400 mr-2">
+          <FunnelIcon className="h-4 w-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
+        </div>
+        <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>Todos</button>
+        <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50'}`}>Somente Ativos</button>
+        <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50'}`}>Devolvidos</button>
+      </div>
+
+      {/* TABELA */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -253,7 +281,7 @@ export default function Entregas() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {entregas.map(en => {
+              {entregasFiltradas.map(en => {
                 const validadeCaStr = en.epiSnapshot?.validade_ca;
                 const isCAVencido = validadeCaStr ? new Date(validadeCaStr) < new Date() : false;
 
@@ -290,11 +318,14 @@ export default function Entregas() {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-1">
-                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600 transition-all"><ArrowDownTrayIcon className="h-5 w-5"/></button>
+                        <button title="Baixar Recibo" onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600 transition-all"><ArrowDownTrayIcon className="h-5 w-5"/></button>
                         {!en.devolvida && (
-                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-all"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
+                          <button title="Registrar Devolução" onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-all"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
                         )}
-                        <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-all"><TrashIcon className="h-5 w-5"/></button>
+                        {/* BOTÃO DE DELETE PROTEGIDO POR CARGO */}
+                        {isAdmin && (
+                          <button title="Excluir Registro" onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-all"><TrashIcon className="h-5 w-5"/></button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -302,6 +333,9 @@ export default function Entregas() {
               })}
             </tbody>
           </table>
+          {entregasFiltradas.length === 0 && (
+            <div className="p-20 text-center text-gray-400 italic text-sm">Nenhuma entrega encontrada para este filtro.</div>
+          )}
         </div>
       </div>
 
