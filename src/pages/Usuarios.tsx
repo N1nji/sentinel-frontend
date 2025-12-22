@@ -10,7 +10,7 @@ import {
   ArrowsUpDownIcon,
   ClipboardDocumentIcon,
   CheckIcon
-} from "@heroicons/react/24/outline"; // Mudei para outline para ficar mais leve
+} from "@heroicons/react/24/outline";
 
 interface IUsuario {
   _id: string;
