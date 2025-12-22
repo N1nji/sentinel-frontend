@@ -126,13 +126,31 @@ export default function DashboardAdvanced() {
     total: m.count ?? m.total ?? 0,
   }));
 
-  async function handleGenerateInsights() {
+ async function handleGenerateInsights() {
     if (!data) return;
     try {
       setInsightsLoading(true);
-      const resumo = ["Top EPIs:", ...data.topEpis.slice(0, 5).map((e) => `${e._id} = ${e.total}`), "\nTop Setores:", ...data.entregasPorSetor.slice(0, 5).map((s) => `${s._id} = ${s.total}`)].join("\n");
+      const resumo = [
+        "Top EPIs:", 
+        ...data.topEpis.slice(0, 5).map((e) => `${e._id} = ${e.total}`), 
+        "\nTop Setores:", 
+        ...data.entregasPorSetor.slice(0, 5).map((s) => `${s._id} = ${s.total}`)
+      ].join("\n");
+      
       const resp = await generateInsights(resumo);
-      setInsightsText(resp?.insights || "Sem resposta da IA.");
+      const originalText = resp?.insights || "Sem resposta da IA.";
+
+      // --- MELHORIA AQUI: FORMATANDO O TEXTO DA IA ---
+      // Se o texto não começar com emoji, vamos adicionar um cabeçalho padrão
+      // e garantir que pontos de lista ou tópicos fiquem destacados.
+      const formattedInsights = `📊 ANÁLISE ESTRATÉGICA DA IA
+
+${originalText.replace(/(\d\.|[•*-])\s?/g, '💡 ')} 
+
+---
+Gerado automaticamente pelo motor de IA Sentinel.`;
+      
+      setInsightsText(formattedInsights);
       setInsightsOpen(true);
     } catch (err) {
       setInsightsText("⚠️ Erro ao gerar insights.");
