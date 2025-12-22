@@ -15,9 +15,20 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
   const [loading, setLoading] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
-  const [dark, setDark] = useState(false);
+  
+  // MELHORIA: Inicializa o estado lendo a preferência salva
+  const [dark, setDark] = useState(() => {
+    return localStorage.getItem("chat-theme") === "dark";
+  });
 
   const ref = useRef<HTMLDivElement | null>(null);
+
+  // MELHORIA: Função que alterna o estado e grava no localStorage
+  const toggleTheme = () => {
+    const newTheme = !dark;
+    setDark(newTheme);
+    localStorage.setItem("chat-theme", newTheme ? "dark" : "light");
+  };
 
   useEffect(() => {
     if (!chatId) {
@@ -109,7 +120,8 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={() => setDark(!dark)} className={`p-2 rounded-xl transition-all ${dark ? "bg-slate-800 text-yellow-400 hover:bg-slate-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+          {/* BOTÃO ATUALIZADO: Agora chama toggleTheme para persistir a escolha */}
+          <button onClick={toggleTheme} className={`p-2 rounded-xl transition-all ${dark ? "bg-slate-800 text-yellow-400 hover:bg-slate-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
             {dark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
           </button>
           <button 
