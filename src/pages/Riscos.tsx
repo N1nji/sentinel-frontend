@@ -136,9 +136,11 @@ export default function Riscos() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <ExclamationTriangleIcon className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Mapa de Riscos</h1>
-          <p className="text-slate-500 font-medium">Identificação e controle de perigos por setor</p>
+          <div className="flex items-center gap-2 mb-1">
+            <ExclamationTriangleIcon className="h-8 w-8 text-rose-600" />
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Mapa de Riscos</h1>
+          </div>
+          <p className="text-slate-500 font-medium ml-10">Identificação e controle de perigos por setor</p>
         </div>
 
         <button
@@ -180,7 +182,8 @@ export default function Riscos() {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Risco / Categoria</th>
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Setor</th>
-                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Classificação</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Classificação / Status</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Responsável</th>
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Sentinel AI</th>
                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Ações</th>
               </tr>
@@ -200,13 +203,27 @@ export default function Riscos() {
                     </span>
                   </td>
                   <td className="px-6 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-wider ${getBadgeClass(r.classificacao)}`}>
-                      <span className="relative flex h-2 w-2">
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${r.classificacao === 'critico' ? 'bg-red-400' : 'hidden'}`}></span>
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${r.classificacao === 'critico' ? 'bg-red-500' : 'bg-current'}`}></span>
+                    <div className="flex flex-col gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black border uppercase tracking-wider ${getBadgeClass(r.classificacao)}`}>
+                        <span className="relative flex h-2 w-2">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${r.classificacao === 'critico' ? 'bg-red-400' : 'hidden'}`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${r.classificacao === 'critico' ? 'bg-red-500' : 'bg-current'}`}></span>
+                        </span>
+                        {r.classificacao}
                       </span>
-                      {r.classificacao}
-                    </span>
+                      <span className={`text-[9px] font-bold uppercase flex items-center gap-1 ${r.status === 'ativo' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${r.status === 'ativo' ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                        {r.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                        {r.responsavel?.charAt(0).toUpperCase() || "?"}
+                      </div>
+                      <span className="text-xs font-semibold text-slate-700">{r.responsavel || "Não definido"}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-5 text-center">
                     <button
@@ -301,6 +318,30 @@ export default function Riscos() {
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Medidas de Controle Atuais</label>
             <textarea className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all h-20" placeholder="O que já está sendo feito?" value={medidas} onChange={(e) => setMedidas(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Responsável</label>
+              <input 
+                type="text" 
+                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-sm" 
+                placeholder="Nome do gestor" 
+                value={responsavel} 
+                onChange={(e) => setResponsavel(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Status Atual</label>
+              <select 
+                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm" 
+                value={status} 
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="ativo">⚠️ ATIVO</option>
+                <option value="controlado">✅ CONTROLADO</option>
+              </select>
+            </div>
           </div>
 
           <button className="w-full bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">

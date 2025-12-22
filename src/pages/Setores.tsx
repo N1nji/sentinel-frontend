@@ -126,7 +126,7 @@ export default function Setores() {
     <div className="p-2">
       {/* CABEÇALHO */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
+        <div className="flex items-center gap-2 mb-1">
           <BuildingOffice2Icon className="h-8 w-8 text-indigo-600" />
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Setores</h1>
           <p className="text-gray-500 text-sm font-medium">
