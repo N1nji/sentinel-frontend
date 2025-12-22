@@ -168,20 +168,57 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
     }
   }
 
-  async function handleForecast(epiId: string | undefined) {
-    if (!epiId) return alert("Selecione um EPI antes!");
+async function handleForecast(epiId: string | undefined) {
+    // 1. Validação elegante caso não tenha selecionado EPI
+    if (!epiId) {
+      setInsightsText(`📌 SELECIONE UM EPI
+      
+Para gerar uma previsão de demanda, você precisa selecionar um item específico no filtro de EPIs acima.`);
+      setInsightsOpen(true);
+      return;
+    }
+
     try {
       setForecastLoading(true);
       const result = await fetchForecast(epiId, 12, 3);
+
+      // 2. Validação de dados insuficientes (se a IA devolver tudo zerado ou array vazio)
+      if (!result || !result.values || result.values.length < 2) {
+        setInsightsText(`⚠️ DADOS INSUFICIENTES
+        
+Não encontramos histórico de entregas suficiente para este EPI. 
+
+💡 POR QUE ISSO ACONTECE?
+Para calcular uma tendência confiável, o Sentinel precisa de pelo menos 2 a 3 meses de movimentações registradas para este item específico. 
+
+Recomendamos continuar os registros de entregas para que o motor de IA possa aprender o padrão de consumo.`);
+        setInsightsOpen(true);
+        return;
+      }
+
+      // 3. Sucesso: Gera o texto do forecast padrão
       setInsightsText(buildForecastText(result));
       setInsightsOpen(true);
+
     } catch (err) {
-      alert("Erro ao gerar forecast.");
+      // 4. Erro de conexão ou erro interno do servidor
+      console.error("Erro Forecast:", err);
+      setInsightsText(`❌ FALHA NO PROCESSAMENTO
+
+Ocorreu um erro ao tentar calcular a previsão de demanda. 
+
+Isso pode ser causado por:
+• Instabilidade temporária na conexão.
+• O item selecionado não possui nenhuma entrega realizada.
+• Erro interno no motor de cálculo.
+
+Por favor, tente novamente em alguns instantes ou selecione outro EPI.`);
+      setInsightsOpen(true);
     } finally {
       setForecastLoading(false);
     }
   }
-
+  
   if (loading) return <div className="p-10 text-center animate-pulse text-gray-500">🚀 Sincronizando dados...</div>;
   if (!data) return <div className="p-10 text-center text-red-500">❌ Falha na conexão com o servidor.</div>;
 
