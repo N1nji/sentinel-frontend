@@ -4,59 +4,41 @@ import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
+import {
+  TrashIcon,
+  PlusIcon,
+  ArrowDownTrayIcon,
+  ArrowPathRoundedSquareIcon,
+  CheckBadgeIcon,
+  InformationCircleIcon,
+  ExclamationTriangleIcon,
+  CalendarDaysIcon
+} from "@heroicons/react/24/outline";
 
 interface IEntrega {
-   _id: string;
-
-  colaboradorId: {
-    _id: string;
-    nome: string;
-    matricula?: string;
-  };
-
-  epiId: {
-    _id: string;
-    nome: string;
-  };
-
+  _id: string;
+  colaboradorId: { _id: string; nome: string; matricula?: string; };
+  epiId: { _id: string; nome: string; };
   epiSnapshot?: {
     nome: string;
     ca?: number;
-    validade_ca?: string;
+    validade_ca?: string; 
     nivel_protecao?: string;
     fotoUrl?: string;
   };
-
   quantidade: number;
   dataEntrega: string;
-
-  entreguePor?: {
-    _id: string;
-    nome: string;
-    email?: string;
-  };
-
+  entreguePor?: { _id: string; nome: string; email?: string; };
   observacao?: string;
   assinaturaBase64?: string;
-
   validadeStatus?: "valido" | "vencido";
-
-  // 🔁 DEVOLUÇÃO
   devolvida?: boolean;
   dataDevolucao?: string;
-
-  devolvidoPor?: {
-    _id: string;
-    nome: string;
-    email?: string;
-  };
-
+  devolvidoPor?: { _id: string; nome: string; email?: string; };
   observacaoDevolucao?: string;
-
   assinaturaDevolucaoBase64?: string;
 }
-
 
 export default function Entregas() {
   const [entregas, setEntregas] = useState<IEntrega[]>([]);
@@ -64,12 +46,11 @@ export default function Entregas() {
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // form
   const [colaboradorId, setColaboradorId] = useState("");
   const [epiId, setEpiId] = useState("");
   const [quantidade, setQuantidade] = useState(1);
   const [observacao, setObservacao] = useState("");
-  const [assinaturaBase64, setAssinaturaBase64] = useState("");
+  
   const sigPadRef = useRef<any>(null);
   const canvasContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,43 +59,29 @@ export default function Entregas() {
   const [loading, setLoading] = useState(false);
   const [alertLowStock, setAlertLowStock] = useState<string | null>(null);
 
-  // UI feedback states para salvar assinatura
-  const [savingSignature, setSavingSignature] = useState(false);
-  const [signatureSavedModalOpen, setSignatureSavedModalOpen] = useState(false);
-  const [signatureErrorModalOpen, setSignatureErrorModalOpen] = useState(false);
-  const [signatureErrorMessage, setSignatureErrorMessage] = useState("");
-
-  // DEVOLUÇÃO
   const [openDevolucao, setOpenDevolucao] = useState(false);
   const [devolucaoEntrega, setDevolucaoEntrega] = useState<IEntrega | null>(null);
   const [devolucaoObs, setDevolucaoObs] = useState("");
   const [devolucaoLoading, setDevolucaoLoading] = useState(false);
   const sigPadDevolucaoRef = useRef<any>(null);
-  const canvasDevolucaoRef = useRef<HTMLDivElement | null>(null);
-  const [assinaturaDevolucaoBase64, setAssinaturaDevolucaoBase64] = useState("");
-  const [signatureDevolucaoSaved, setSignatureDevolucaoSaved] = useState(false);
-  const [signatureDevolucaoError, setSignatureDevolucaoError] = useState<string | null>(null);
-
-
-
 
   const token = localStorage.getItem("token");
 
   async function load() {
     setLoading(true);
     try {
+      const headers = { Authorization: `Bearer ${token}` };
       const [resEnt, resEpis, resCols] = await Promise.all([
-        api.get("/entregas", { headers: { Authorization: `Bearer ${token}` } }),
-        api.get("/epis", { headers: { Authorization: `Bearer ${token}` } }),
-        api.get("/colaboradores", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("/entregas", { headers }),
+        api.get("/epis", { headers }),
+        api.get("/colaboradores", { headers }),
       ]);
-      setEntregas(resEnt.data.data || resEnt.data);
+      setEntregas(resEnt.data);
       setEpis(resEpis.data);
       setColaboradores(resCols.data);
 
-      // quick check low stock (threshold 5)
       const low = resEpis.data.find((e: any) => e.estoque <= 5);
-      setAlertLowStock(low ? `Estoque baixo: ${low.nome} (${low.estoque})` : null);
+      setAlertLowStock(low ? `${low.nome} (${low.estoque} un)` : null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -124,508 +91,244 @@ export default function Entregas() {
 
   useEffect(() => { load(); }, []);
 
-  const selectedEpi = epis.find(x => x._id === epiId);
+  async function generatePdfReceipt(en: IEntrega) {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-  // ------------- CANVAS / SIGNATURE PAD RESIZE FIX -------------
-  // reason: offset / wrong cursor occurs when canvas is styled with CSS but internal buffer size doesn't match
-  function resizeSignatureCanvas() {
-    const pad = sigPadRef.current;
-    const container = canvasContainerRef.current;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("FICHA DE CONTROLE DE EPI", pageWidth / 2, 20, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(10, 25, pageWidth - 10, 25);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const termo = `Declaramos para os devidos fins que recebi da empresa os Equipamentos de Proteção Individual (EPIs) abaixo listados, novos e em perfeitas condições de uso, em conformidade com a NR-6 da Portaria 3.214/78. Comprometo-me a utilizá-los apenas para a finalidade a que se destinam e a zelar pela sua guarda e conservação.`;
+    const splitTermo = doc.splitTextToSize(termo, pageWidth - 20);
+    doc.text(splitTermo, 10, 35);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Colaborador: ${en.colaboradorId?.nome || "---"}`, 10, 55);
+    doc.text(`Data: ${new Date(en.dataEntrega).toLocaleDateString()}`, pageWidth - 50, 55);
+
+    doc.setFillColor(245, 245, 245);
+    doc.rect(10, 65, pageWidth - 20, 10, "F");
+    doc.text("Item", 12, 72);
+    doc.text("CA", 120, 72);
+    doc.text("Qtd", 150, 72);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(en.epiSnapshot?.nome || en.epiId?.nome || "---", 12, 82);
+    doc.text(String(en.epiSnapshot?.ca || "---"), 120, 82);
+    doc.text(String(en.quantidade), 150, 82);
+
+    if (en.assinaturaBase64) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Assinatura do Recebedor:", 10, 110);
+      doc.addImage(en.assinaturaBase64, "PNG", 10, 115, 50, 20);
+      doc.line(10, 136, 70, 136);
+    }
+
+    doc.save(`Recibo_EPI_${en.colaboradorId?.nome}.pdf`);
+  }
+
+  const resizeCanvas = (pad: any, container: HTMLDivElement | null) => {
     if (!pad || !container) return;
-
-    const desiredHeight = 200; // px
-    const width = container.clientWidth;
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-
     const canvas = pad.getCanvas();
-    // set internal buffer size according to devicePixelRatio to avoid coordinate mismatch
-    canvas.width = Math.floor(width * ratio);
-    canvas.height = Math.floor(desiredHeight * ratio);
-
-    // set CSS size (what user sees)
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${desiredHeight}px`;
-
-    // reset the signature pad (we only do this when modal opens/resizes to ensure correct scale)
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = container.offsetWidth * ratio;
+    canvas.height = 200 * ratio;
+    canvas.getContext("2d")?.scale(ratio, ratio);
     pad.clear();
-  }
+  };
 
-  // when modal opens, set canvas size; also on window resize
   useLayoutEffect(() => {
-    if (!openModal) return;
-    // small timeout to ensure modal DOM is mounted and has width
-    const t = setTimeout(() => resizeSignatureCanvas(), 80);
-    const onResize = () => resizeSignatureCanvas();
-    window.addEventListener("resize", onResize);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [openModal, canvasContainerRef.current]);
-
-  function clearSignature() {
-    sigPadRef.current?.clear();
-    setAssinaturaBase64("");
-  }
-
-function saveSignature() {
-  try {
-    const pad = sigPadRef.current;
-    if (!pad) {
-      setSignatureErrorMessage("Erro interno: referência do canvas não encontrada.");
-      setSignatureErrorModalOpen(true);
-      return;
-    }
-
-    if (pad.isEmpty()) {
-      setSignatureErrorMessage("Assinatura vazia. Desenhe algo antes de salvar.");
-      setSignatureErrorModalOpen(true);
-      return;
-    }
-
-    setSavingSignature(true);
-
-    let dataURL: string | null = null;
-
-    try {
-      // tenta usar o trimmed (se funcionar)
-      const trimmed = (pad as any).getTrimmedCanvas?.();
-      if (trimmed && typeof trimmed.toDataURL === "function") {
-        dataURL = trimmed.toDataURL("image/png");
-      } else {
-        // se getTrimmedCanvas não existir ou não for função, cai no fallback
-        throw new Error("getTrimmedCanvas não disponível");
-      }
-    } catch (err) {
-      // fallback seguro: pega o canvas "cru" e gera dataURL
-      const canvas = pad.getCanvas();
-      dataURL = canvas.toDataURL("image/png");
-    }
-
-    if (!dataURL) {
-      throw new Error("Não foi possível gerar a imagem da assinatura.");
-    }
-
-    setAssinaturaBase64(dataURL);
-    setSignatureSavedModalOpen(true);
-
-    // fecha o modal de sucesso automaticamente depois de um tempo
-    setTimeout(() => setSignatureSavedModalOpen(false), 1200);
-  } catch (err) {
-    console.error("Erro ao salvar assinatura", err);
-    setSignatureErrorMessage("Erro ao salvar assinatura. Tente novamente.");
-    setSignatureErrorModalOpen(true);
-  } finally {
-    setSavingSignature(false);
-  }
-}
+    if (openModal) setTimeout(() => resizeCanvas(sigPadRef.current, canvasContainerRef.current), 200);
+  }, [openModal]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!colaboradorId || !epiId) return alert("Colaborador e EPI obrigatórios");
-    if (selectedEpi && selectedEpi.estoque < quantidade) return alert("Estoque insuficiente");
+    if (!sigPadRef.current || sigPadRef.current.isEmpty()) return alert("Assinatura obrigatória");
+    const signature = sigPadRef.current.getTrimmedCanvas().toDataURL("image/png");
 
     try {
       setLoading(true);
-      const payload = { colaboradorId, epiId, quantidade, observacao, assinaturaBase64 };
-      await api.post("/entregas", payload, { headers: { Authorization: `Bearer ${token}` } });
+      await api.post("/entregas", {
+        colaboradorId, epiId, quantidade, observacao, assinaturaBase64: signature
+      }, { headers: { Authorization: `Bearer ${token}` } });
       setOpenModal(false);
-      clearSignature();
       load();
     } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.error || "Erro ao registrar entrega");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!deleteId) return;
-    try {
-      setLoading(true);
-      await api.delete(`/entregas/${deleteId}`, { headers: { Authorization: `Bearer ${token}` } });
-      setOpenDelete(false);
-      setDeleteId(null);
-      load();
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao deletar entrega");
+      alert(err?.response?.data?.error || "Erro");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDevolucao() {
-  if (!devolucaoEntrega) return;
+    if (!sigPadDevolucaoRef.current || sigPadDevolucaoRef.current.isEmpty()) return alert("Assinatura obrigatória");
+    const signature = sigPadDevolucaoRef.current.getTrimmedCanvas().toDataURL("image/png");
+    try {
+      setDevolucaoLoading(true);
+      await api.post(`/entregas/${devolucaoEntrega?._id}/devolucao`, {
+        observacao: devolucaoObs, assinaturaBase64: signature
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setOpenDevolucao(false);
+      load();
+    } finally { setDevolucaoLoading(false); }
+  }
 
-  try {
-    setDevolucaoLoading(true);
-
-    await api.post(
-      `/entregas/${devolucaoEntrega._id}/devolucao`,
-      { observacao: devolucaoObs, assinaturaBase64: assinaturaDevolucaoBase64 },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    setOpenDevolucao(false);
-    setDevolucaoEntrega(null);
-    setDevolucaoObs("");
+  async function handleDelete() {
+    await api.delete(`/entregas/${deleteId}`, { headers: { Authorization: `Bearer ${token}` } });
+    setOpenDelete(false);
     load();
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao registrar devolução");
-  } finally {
-    setDevolucaoLoading(false);
   }
-}
-
-  // Função limpar assinatura devolução
-  function clearSignatureDevolucao() {
-  sigPadDevolucaoRef.current?.clear();
-  setAssinaturaDevolucaoBase64("");
-}
-  
-  // Função salvar assinatura devolução
-  function saveSignatureDevolucao() {
-  const pad = sigPadDevolucaoRef.current;
-  if (!pad || pad.isEmpty()) {
-    setSignatureDevolucaoError("Assinatura da devolução vazia.");
-    return;
-  }
-
-  const dataURL = pad.getCanvas().toDataURL("image/png");
-  setAssinaturaDevolucaoBase64(dataURL);
-  setSignatureDevolucaoSaved(true);
-
-  setTimeout(() => setSignatureDevolucaoSaved(false), 1200);
-}
-
-
-
-  async function generatePdfReceipt(entrega: IEntrega) {
-    const ele = document.createElement("div");
-    ele.style.padding = "16px";
-    ele.style.fontFamily = "Arial, sans-serif";
-    ele.innerHTML = `
-      <div style="text-align:center;">
-        <h2>Recibo de Entrega de EPI</h2>
-        <p><strong>Colaborador:</strong> ${entrega.colaboradorId?.nome || "-"}</p>
-        <p><strong>EPI:</strong> ${entrega.epiSnapshot?.nome || entrega.epiId?.nome || "-"}</p>
-        <p><strong>Quantidade:</strong> ${entrega.quantidade}</p>
-        <p><strong>Data:</strong> ${new Date(entrega.dataEntrega).toLocaleString()}</p>
-        <p><strong>Entregue por:</strong> ${entrega.entreguePor?.nome || "-"}</p>
-        <p><strong>Validade do EPI:</strong> ${entrega.epiSnapshot?.validade_ca ? new Date(entrega.epiSnapshot.validade_ca).toLocaleDateString() : "-"}</p>
-      </div>
-      ${entrega.assinaturaBase64 ? `<div style="margin-top:20px"><img src="${entrega.assinaturaBase64}" style="display:block;margin:20px auto;width:240px;border:1px solid #ccc;"/></div>` : ""}
-    `;
-    document.body.appendChild(ele);
-    const canvas = await html2canvas(ele);
-    const imgData = canvas.toDataURL("image/png");
-    const doc = new jsPDF("p", "mm", "a4");
-    const imgProps = doc.getImageProperties(imgData);
-    const pdfWidth = 190;
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    doc.addImage(imgData, "PNG", 10, 10, pdfWidth, pdfHeight);
-    doc.save(`recibo_entrega_${entrega._id}.pdf`);
-    document.body.removeChild(ele);
-  }
-
-  async function generatePdfDevolucao(entrega: IEntrega) {
-  const ele = document.createElement("div");
-  ele.style.padding = "16px";
-  ele.style.fontFamily = "Arial";
-
-  ele.innerHTML = `
-    <h2 style="text-align:center;">Recibo de Devolução de EPI</h2>
-    <div style="text-align:center;">
-    <p><strong>Colaborador:</strong> ${entrega.colaboradorId?.nome}</p>
-    <p><strong>EPI:</strong> ${entrega.epiSnapshot?.nome}</p>
-    <p><strong>Quantidade:</strong> ${entrega.quantidade}</p>
-    <p><strong>Data da devolução:</strong> ${new Date(entrega.dataDevolucao!).toLocaleString()}</p>
-    <p><strong>Devolvido por:</strong> ${entrega.devolvidoPor?.nome}</p>
-
-    ${
-      entrega.assinaturaDevolucaoBase64
-        ? `<img src="${entrega.assinaturaDevolucaoBase64}" style="display:block;margin:20px auto;width:240px;border:1px solid #ccc;" />`
-        : ""
-    }
-  `;
-
-  document.body.appendChild(ele);
-
-  const canvas = await html2canvas(ele);
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("p", "mm", "a4");
-
-  pdf.addImage(imgData, "PNG", 10, 10, 190, 0);
-  pdf.save(`recibo_devolucao_${entrega._id}.pdf`);
-
-  document.body.removeChild(ele);
-}
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Entregas de EPI</h1>
+    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+      {/* HEADER DASHBOARD */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Entregas de EPI</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <CheckBadgeIcon className="h-5 w-5 text-emerald-500" />
+            <p className="text-gray-500 text-sm font-medium">Controle jurídico e operacional de equipamentos.</p>
+          </div>
+        </div>
 
         <div className="flex items-center gap-3">
           {alertLowStock && (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 p-2 rounded">
-              <strong>Atenção:</strong> {alertLowStock}
+            <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl border border-amber-200 text-xs font-bold flex items-center gap-2">
+              <ExclamationTriangleIcon className="h-4 w-4" /> Estoque Baixo: {alertLowStock}
             </div>
           )}
-
-          <button onClick={() => setOpenModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-            Nova Entrega
+          <button onClick={() => setOpenModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl shadow-lg transition-all font-bold flex items-center gap-2">
+            <PlusIcon className="h-5 w-5" /> Nova Entrega
           </button>
         </div>
       </div>
 
-      {loading ? <div>Carregando...</div> : (
-        <table className="w-full bg-white shadow rounded overflow-hidden">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="p-2 text-left">Colaborador</th>
-              <th className="p-2 text-left">EPI</th>
-              <th className="p-2">Qtde</th>
-              <th className="p-2">Data</th>
-              <th className="p-2">Entregue por</th>
-              <th className="p-2">Validade</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entregas.map(en => (
-              <tr key={en._id} className="border-t">
-                <td className="p-2">{en.colaboradorId?.nome}</td>
-                <td className="p-2">{en.epiSnapshot?.nome || en.epiId?.nome}</td>
-                <td className="p-2 text-center">{en.quantidade}</td>
-                <td className="p-2">{new Date(en.dataEntrega).toLocaleString()}</td>
-                <td className="p-2">{en.entreguePor?.nome}</td>
-                <td className="p-2">{en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca).toLocaleDateString() : "-"}</td>
-                <td className="p-2">{en.devolvida ? ( <span className="text-blue-600 font-semibold">Devolvido</span>
-                    ) : (
-                      <span className="text-green-600 font-semibold">Ativo</span>
-                    )}
-                  </td>
-                <td className="p-2 flex gap-2">
-                  <button onClick={() => generatePdfReceipt(en)} className="text-blue-600">Recibo</button>
-                  {en.devolvida && ( <button onClick={() => generatePdfDevolucao(en)} className="text-purple-600">Recibo Devolução</button> )}
-                  {!en.devolvida && (
-                  <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="text-orange-600"> Devolver</button> )}
-                  <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="text-red-600">Excluir</button>
-                </td>
+      {/* LISTAGEM */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                <th className="p-4">Colaborador / Equipamento</th>
+                <th className="p-4 text-center">Qtd</th>
+                <th className="p-4">Data / CA</th>
+                <th className="p-4 text-center">Status</th>
+                <th className="p-4 text-right">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {entregas.map(en => {
+                const validadeCaStr = en.epiSnapshot?.validade_ca;
+                const isCAVencido = validadeCaStr ? new Date(validadeCaStr) < new Date() : false;
 
-      {/* Modal Nova Entrega - aqui aumentei a área interna pra modal ficar maior e responsiva */}
-      <Modal open={openModal} onClose={() => { setOpenModal(false); clearSignature(); }} title="Nova Entrega">
-        <div className="max-w-3xl w-full max-h-[80vh] overflow-auto p-4">
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className="border p-2 w-full">
-              <option value="">Selecione colaborador</option>
+                return (
+                  <tr key={en._id} className="hover:bg-blue-50/20 transition-all group">
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-800">{en.colaboradorId?.nome}</span>
+                        <span className="text-xs text-blue-600 flex items-center gap-1 font-medium">
+                          <InformationCircleIcon className="h-3.5 w-3.5" /> {en.epiSnapshot?.nome || en.epiId?.nome}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="bg-gray-100 px-2 py-1 rounded-md text-xs font-bold text-gray-600">{en.quantidade}</span>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col text-[11px]">
+                        <span className="text-gray-600 font-bold tracking-tight flex items-center gap-1">
+                          <CalendarDaysIcon className="h-3.5 w-3.5 text-gray-400" />
+                          {new Date(en.dataEntrega).toLocaleDateString()}
+                        </span>
+                        <span className={`${isCAVencido ? 'text-red-500 font-black' : 'text-gray-400 font-medium'}`}>
+                          CA: {en.epiSnapshot?.ca || '---'} {isCAVencido && ' (VENCIDO)'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      {en.devolvida ? (
+                        <span className="px-2 py-1 rounded-full text-[9px] font-black bg-blue-100 text-blue-700 uppercase">Devolvido</span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700 uppercase">Ativo</span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-1">
+                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600 transition-all"><ArrowDownTrayIcon className="h-5 w-5"/></button>
+                        {!en.devolvida && (
+                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-all"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
+                        )}
+                        <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-all"><TrashIcon className="h-5 w-5"/></button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* MODAL NOVA ENTREGA */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega de EPI">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className="w-full border-gray-300 rounded-xl focus:ring-blue-500">
+              <option value="">Selecione Colaborador</option>
               {colaboradores.map(c => <option key={c._id} value={c._id}>{c.nome}</option>)}
             </select>
-
-            <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="border p-2 w-full">
+            <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="w-full border-gray-300 rounded-xl focus:ring-blue-500">
               <option value="">Selecione EPI</option>
-              {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome} (estoque: {ep.estoque})</option>)}
+              {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome} (Estoque: {ep.estoque})</option>)}
             </select>
-
-            {selectedEpi && (
-              <div className="p-2 bg-gray-50 border rounded">
-                <div>Estoque atual: {selectedEpi.estoque}</div>
-                <div>Validade CA: {selectedEpi.validade_ca ? new Date(selectedEpi.validade_ca).toLocaleDateString() : "-"}</div>
-              </div>
-            )}
-
-            <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="border p-2 w-full" required />
-
-            <textarea value={observacao} onChange={e => setObservacao(e.target.value)} className="border p-2 w-full" placeholder="Observação (opcional)" />
-
-            <div>
-              <div className="mb-2 font-medium">Assinatura</div>
-
-              {/* container responsivo do canvas */}
-              <div ref={canvasContainerRef} className="border rounded p-2">
-                <SignaturePad
-                  ref={sigPadRef}
-                  // important: we do not set width/height css here; we resize on mount with JS for correct ratio
-                  canvasProps={{ className: "signature-canvas", style: { width: "100%", height: "200px" } }}
-                />
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <button type="button" onClick={clearSignature} className="px-3 py-1 border rounded">Limpar</button>
-
-                <button
-                  type="button"
-                  onClick={saveSignature}
-                  className={`px-3 py-1 border rounded ${savingSignature ? "opacity-60" : ""}`}
-                  disabled={savingSignature}
-                >
-                  {savingSignature ? "Salvando..." : "Salvar assinatura"}
-                </button>
-              </div>
+          </div>
+          <div className="flex gap-2">
+            <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="w-24 border-gray-300 rounded-xl" required />
+            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação opcional..." className="flex-1 border-gray-300 rounded-xl" />
+          </div>
+          <div>
+            <label className="text-[10px] font-black text-gray-400 uppercase ml-1">Assinatura Digital</label>
+            <div ref={canvasContainerRef} className="border-2 border-dashed border-gray-200 rounded-2xl mt-1 bg-gray-50 overflow-hidden relative">
+              <SignaturePad ref={sigPadRef} canvasProps={{ className: "w-full h-[200px]" }} />
+              <button type="button" onClick={() => sigPadRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] font-black rounded border">Limpar</button>
             </div>
+          </div>
+          <button disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest text-xs">
+            {loading ? "Registrando..." : "Confirmar Entrega"}
+          </button>
+        </form>
+      </Modal>
 
-            <div className="flex gap-2">
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Confirmar Entrega</button>
-              <button type="button" onClick={() => { setOpenModal(false); clearSignature(); }} className="px-4 py-2 border rounded">Cancelar</button>
-            </div>
-          </form>
+      {/* MODAL DEVOLUÇÃO */}
+      <Modal open={openDevolucao} onClose={() => setOpenDevolucao(false)} title="Confirmar Devolução">
+        <div className="space-y-4">
+          <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-sm">
+            <p className="text-blue-800"><strong>Equipamento:</strong> {devolucaoEntrega?.epiSnapshot?.nome}</p>
+            <p className="text-blue-800"><strong>Colaborador:</strong> {devolucaoEntrega?.colaboradorId?.nome}</p>
+          </div>
+          <input value={devolucaoObs} onChange={(e) => setDevolucaoObs(e.target.value)} className="w-full border-gray-300 rounded-xl" placeholder="Condições do equipamento..." />
+          <div className="border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 h-[150px]">
+            <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} />
+          </div>
+          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-700 uppercase text-xs tracking-widest">
+            {devolucaoLoading ? "Gravando..." : "Confirmar Recebimento"}
+          </button>
         </div>
       </Modal>
 
-      {/* Confirm delete */}
       <ConfirmModal
         open={openDelete}
-        title="Excluir entrega"
-        message="Excluir entrega restaurará o estoque. Tem certeza?"
+        title="Remover Registro?"
+        message="A exclusão retornará o item ao estoque, mas apagará o registro histórico."
         onClose={() => setOpenDelete(false)}
         onConfirm={handleDelete}
       />
-
-      {/* Modal de confirmação padrão quando assinatura salva */}
-      {signatureSavedModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
-            <h3 className="font-semibold mb-2">Assinatura salva</h3>
-            <p className="text-sm text-gray-600 mb-4">A assinatura foi salva com sucesso ✅</p>
-            <div className="flex justify-center">
-              <button onClick={() => setSignatureSavedModalOpen(false)} className="px-4 py-2 bg-blue-600 text-white rounded">OK</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de erro padrão para assinatura */}
-      {signatureErrorModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-            <h3 className="font-semibold mb-2 text-red-600">Erro</h3>
-            <p className="text-sm text-gray-700 mb-4">{signatureErrorMessage}</p>
-            <div className="flex justify-end">
-              <button onClick={() => setSignatureErrorModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded">Fechar</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Modal Devolução */}
-      <Modal
-          open={openDevolucao}
-          onClose={() => {
-            setOpenDevolucao(false);
-            setDevolucaoEntrega(null);
-            setDevolucaoObs("");
-          }}
-          title="Registrar Devolução"
-        >
-          <div className="space-y-4">
-            <p>
-              <strong>Colaborador:</strong> {devolucaoEntrega?.colaboradorId?.nome}
-            </p>
-            <p>
-              <strong>EPI:</strong>{" "}
-              {devolucaoEntrega?.epiSnapshot?.nome || devolucaoEntrega?.epiId?.nome}
-            </p>
-            <p>
-              <strong>Quantidade:</strong> {devolucaoEntrega?.quantidade}
-            </p>
-
-            <textarea
-              value={devolucaoObs}
-              onChange={(e) => setDevolucaoObs(e.target.value)}
-              className="border p-2 w-full"
-              placeholder="Observação da devolução (opcional)"
-            />
-
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setOpenDevolucao(false)}
-                className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-
-              <div>
-
-            <div className="font-medium mb-2">Assinatura da devolução</div>
-
-              <div ref={canvasDevolucaoRef} className="border rounded p-2">
-                <SignaturePad
-                  ref={sigPadDevolucaoRef}
-                  canvasProps={{ style: { width: "100%", height: "200px" } }}
-                />
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <button
-                  type="button"
-                  onClick={clearSignatureDevolucao}
-                  className="px-3 py-1 border rounded"
-                >
-                  Limpar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={saveSignatureDevolucao}
-                  className="px-3 py-1 border rounded"
-                >
-                  Salvar assinatura
-                </button>
-
-              <button
-                onClick={handleDevolucao}
-                disabled={devolucaoLoading}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded"
-              >
-                {devolucaoLoading ? "Registrando..." : "Confirmar Devolução"}
-              </button>
-
-                 {/* Modal de Sucesso para devolução */}
-              {signatureDevolucaoSaved && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm text-center">
-                    <h3 className="font-semibold mb-2">Assinatura salva</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      Assinatura da devolução salva com sucesso ✅
-                    </p>
-                    <button
-                      onClick={() => setSignatureDevolucaoSaved(false)}
-                      className="px-4 py-2 bg-orange-600 text-white rounded"
-                    >
-                      OK
-                    </button>
-                  </div>
-                </div>
-              )}
-              {/* Modal de erro para devolução */}
-              {signatureDevolucaoError && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
-                    <h3 className="font-semibold text-red-600 mb-2">Erro</h3>
-                    <p className="text-sm mb-4">{signatureDevolucaoError}</p>
-                    <button
-                      onClick={() => setSignatureDevolucaoError(null)}
-                      className="px-4 py-2 bg-gray-300 rounded"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </div>
-              )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </Modal>
     </div>
   );
 }
