@@ -1,4 +1,3 @@
-// src/pages/EPIs.tsx
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 
@@ -10,7 +9,10 @@ import {
   PencilSquareIcon,
   TrashIcon,
   ArrowsUpDownIcon,
-} from "@heroicons/react/24/solid";
+  MagnifyingGlassIcon,
+  ArchiveBoxIcon,
+  ShieldCheckIcon,
+} from "@heroicons/react/24/outline";
 
 // -------------------------------
 // Tipagem
@@ -20,7 +22,7 @@ interface IEpi {
   nome: string;
   categoria: string;
   ca: number;
-  validade_ca: string; // string data ISO
+  validade_ca: string;
   estoque: number;
   nivel_protecao: string;
   descricao: string;
@@ -31,15 +33,12 @@ interface IEpi {
 
 export default function EPIs() {
   const [epis, setEpis] = useState<IEpi[]>([]);
-
   const [openModal, setOpenModal] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<"asc" | "desc">("asc");
-
-  const itensPorPagina = 10;
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const itensPorPagina = 10;
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -56,9 +55,6 @@ export default function EPIs() {
 
   const token = localStorage.getItem("token");
 
-  // -------------------------------
-  // Carregar lista
-  // -------------------------------
   async function load() {
     const res = await api.get("/epis", {
       headers: { Authorization: `Bearer ${token}` },
@@ -66,346 +62,255 @@ export default function EPIs() {
     setEpis(res.data);
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  // -------------------------------
-  // Criar / Editar — com CORREÇÃO DE DATA
-  // -------------------------------
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     const data = {
-      nome,
-      categoria,
-      ca,
-
-      // CORREÇÃO DEFINITIVA: evita dia anterior no Mongo (timezone fix)
+      nome, categoria, ca,
       validade_ca: new Date(validadeCa + "T12:00:00"),
-
-      estoque,
-      nivel_protecao: nivelProtecao,
-      descricao,
-      riscosRelacionados,
-      fotoUrl,
+      estoque, nivel_protecao: nivelProtecao,
+      descricao, riscosRelacionados, fotoUrl,
     };
 
     if (editingId) {
-      await api.put(
-        `/epis/${editingId}`,
-        data,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/epis/${editingId}`, data, { headers: { Authorization: `Bearer ${token}` } });
     } else {
-      await api.post("/epis", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.post("/epis", data, { headers: { Authorization: `Bearer ${token}` } });
     }
 
-    // limpar
-    setNome("");
-    setCategoria("protecao_auditiva");
-    setCa(0);
-    setValidadeCa("");
-    setEstoque(0);
-    setNivelProtecao("");
-    setDescricao("");
-    setRiscosRelacionados([]);
-    setFotoUrl("");
-    setEditingId(null);
-    setOpenModal(false);
+    resetForm();
     load();
   }
 
-  // -------------------------------
-  // Deletar
-  // -------------------------------
+  function resetForm() {
+    setNome(""); setCategoria("protecao_auditiva"); setCa(0); setValidadeCa("");
+    setEstoque(0); setNivelProtecao(""); setDescricao(""); setRiscosRelacionados([]);
+    setFotoUrl(""); setEditingId(null); setOpenModal(false);
+  }
+
   async function handleDelete(id: string) {
-    await api.delete(`/epis/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await api.delete(`/epis/${id}`, { headers: { Authorization: `Bearer ${token}` } });
     setOpenDelete(false);
     load();
   }
 
-  // -------------------------------
-  // Filtros e paginação
-  // -------------------------------
-  const filtrados = epis.filter((e) =>
-    e.nome.toLowerCase().includes(busca.toLowerCase())
-  );
-
-  const ordenados = [...filtrados].sort((a, b) =>
-    ordem === "asc"
-      ? a.nome.localeCompare(b.nome)
-      : b.nome.localeCompare(a.nome)
-  );
-
+  const filtrados = epis.filter((e) => e.nome.toLowerCase().includes(busca.toLowerCase()));
+  const ordenados = [...filtrados].sort((a, b) => ordem === "asc" ? a.nome.localeCompare(b.nome) : b.nome.localeCompare(a.nome));
   const inicio = (paginaAtual - 1) * itensPorPagina;
   const pagina = ordenados.slice(inicio, inicio + itensPorPagina);
   const totalPaginas = Math.ceil(ordenados.length / itensPorPagina);
 
-  // -------------------------------
-  // Badge
-  // -------------------------------
   function getBadgeClass(status: string) {
     switch (status) {
-      case "ativo":
-        return "bg-green-200 text-green-800";
-      case "vencido":
-        return "bg-red-300 text-red-800";
-      case "sem_estoque":
-        return "bg-orange-200 text-orange-800";
-      default:
-        return "bg-gray-200 text-gray-700";
+      case "ativo": return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "vencido": return "bg-rose-100 text-rose-700 border-rose-200";
+      case "sem_estoque": return "bg-amber-100 text-amber-700 border-amber-200";
+      default: return "bg-slate-100 text-slate-600 border-slate-200";
     }
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">
-          EPIs <span className="text-gray-500 text-lg">({epis.length})</span>
-        </h1>
+    <div className="p-1">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <ShieldCheckIcon className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+              Gestão de EPIs <span className="text-slate-400 font-medium text-lg">({epis.length})</span>
+            </h1>
+          </div>
+          <p className="text-slate-500 font-medium ml-10 text-sm md:text-base">Controle de Certificados de Aprovação e estoque</p>
+        </div>
 
         <button
-          className="bg-blue-600 text-white flex items-center px-4 py-2 rounded shadow hover:bg-blue-700"
-          onClick={() => {
-            setEditingId(null);
-            setNome("");
-            setCategoria("protecao_auditiva");
-            setCa(0);
-            setValidadeCa("");
-            setEstoque(0);
-            setNivelProtecao("");
-            setDescricao("");
-            setRiscosRelacionados([]);
-            setFotoUrl("");
-            setOpenModal(true);
-          }}
+          className="bg-blue-600 text-white flex items-center justify-center px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 text-sm md:text-base"
+          onClick={() => { resetForm(); setOpenModal(true); }}
         >
-          <PlusIcon className="h-5 w-5 mr-2" />
+          <PlusIcon className="h-5 w-5 mr-2 stroke-[3]" />
           Novo EPI
         </button>
       </div>
 
-      {/* ferramentas */}
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Buscar..."
-          className="border p-2 rounded w-64"
-          value={busca}
-          onChange={(e) => {
-            setBusca(e.target.value);
-            setPaginaAtual(1);
-          }}
-        />
+      {/* TOOLBAR */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+        <div className="relative w-full sm:max-w-md">
+          <MagnifyingGlassIcon className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Buscar por nome do equipamento..."
+            className="w-full bg-white border border-slate-200 pl-12 pr-4 py-3 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm"
+            value={busca}
+            onChange={(e) => { setBusca(e.target.value); setPaginaAtual(1); }}
+          />
+        </div>
 
         <button
           onClick={() => setOrdem(ordem === "asc" ? "desc" : "asc")}
-          className="flex items-center gap-1 border px-3 py-2 rounded shadow-sm hover:bg-gray-100"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white border border-slate-200 px-5 py-3 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"
         >
-          <ArrowsUpDownIcon className="h-5 w-5" />
+          <ArrowsUpDownIcon className="h-5 w-5 text-slate-400" />
           {ordem === "asc" ? "A-Z" : "Z-A"}
         </button>
       </div>
 
-      {/* tabela */}
-      <table className="w-full bg-white shadow rounded overflow-hidden">
-        <thead className="bg-gray-200 text-left">
-          <tr>
-            <th className="p-3">Nome</th>
-            <th className="p-3">Categoria</th>
-            <th className="p-3">CA</th>
-            <th className="p-3">Validade</th>
-            <th className="p-3">Estoque</th>
-            <th className="p-3">Status</th>
-            <th className="p-3 w-32">Ações</th>
-          </tr>
-        </thead>
+      {/* TABLE */}
+      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Equipamento</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">CA / Validade</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Nível / Categoria</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Estoque</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {pagina.map((e) => (
+                <tr key={e._id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100 font-bold">
+                        {e.nome.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 mb-0.5">{e.nome}</p>
+                        <p className="text-[10px] text-slate-400 truncate max-w-[150px]">{e.descricao || "Sem descrição"}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="text-sm font-bold text-slate-700">CA {e.ca}</p>
+                      <p className={`text-[10px] font-medium ${new Date(e.validade_ca) < new Date() ? 'text-rose-500' : 'text-slate-400'}`}>
+                        Venc: {new Date(e.validade_ca).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md block w-fit">
+                        {e.categoria.replace(/_/g, " ")}
+                      </span>
+                      <p className="text-[10px] text-slate-400 italic">{e.nivel_protecao}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                      <ArchiveBoxIcon className={`h-4 w-4 ${e.estoque < 5 ? 'text-amber-500' : 'text-slate-300'}`} />
+                      <span className={`text-sm font-black ${e.estoque < 5 ? 'text-amber-600' : 'text-slate-700'}`}>
+                        {e.estoque} un
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black border uppercase tracking-wider ${getBadgeClass(e.status)}`}>
+                      {e.status.replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex justify-end gap-1 md:opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                        onClick={() => {
+                          setEditingId(e._id); setNome(e.nome); setCategoria(e.categoria); setCa(e.ca);
+                          setValidadeCa(new Date(e.validade_ca).toISOString().split("T")[0]);
+                          setEstoque(e.estoque); setNivelProtecao(e.nivel_protecao);
+                          setDescricao(e.descricao); setRiscosRelacionados(e.riscosRelacionados || []);
+                          setFotoUrl(e.fotoUrl || ""); setOpenModal(true);
+                        }}
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
+                      </button>
+                      <button
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                        onClick={() => { setDeleteId(e._id); setOpenDelete(true); }}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-        <tbody>
-          {pagina.map((e) => (
-            <tr key={e._id} className="border-t">
-              <td className="p-3">{e.nome}</td>
-              <td className="p-3 capitalize">{e.categoria.replace(/_/g, " ")}</td>
-              <td className="p-3">{e.ca}</td>
-
-              {/* EXIBIÇÃO CORRETA */}
-              <td className="p-3">
-                {new Date(e.validade_ca).toLocaleDateString()}
-              </td>
-
-              <td className="p-3">{e.estoque}</td>
-
-              <td className="p-3">
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${getBadgeClass(
-                    e.status
-                  )}`}
-                >
-                  {e.status.toUpperCase().replace("_", " ")}
-                </span>
-              </td>
-
-              <td className="p-3 flex gap-3">
-                <button
-                  className="text-yellow-600 hover:text-yellow-800"
-                  onClick={() => {
-                    setEditingId(e._id);
-                    setNome(e.nome);
-                    setCategoria(e.categoria);
-                    setCa(e.ca);
-
-                    // CORREÇÃO DEFINITIVA NO EDITAR:
-                    setValidadeCa(
-                      new Date(e.validade_ca).toISOString().split("T")[0]
-                    );
-
-                    setEstoque(e.estoque);
-                    setNivelProtecao(e.nivel_protecao);
-                    setDescricao(e.descricao);
-                    setRiscosRelacionados(e.riscosRelacionados || []);
-                    setFotoUrl(e.fotoUrl || "");
-                    setOpenModal(true);
-                  }}
-                >
-                  <PencilSquareIcon className="h-6 w-6" />
-                </button>
-
-                <button
-                  className="text-red-600 hover:text-red-800"
-                  onClick={() => {
-                    setDeleteId(e._id);
-                    setOpenDelete(true);
-                  }}
-                >
-                  <TrashIcon className="h-6 w-6" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* paginação */}
-      <div className="flex justify-center items-center gap-3 mt-4">
-        <button
-          disabled={paginaAtual === 1}
-          onClick={() => setPaginaAtual((p) => p - 1)}
-          className="px-3 py-1 border rounded disabled:opacity-40"
-        >
-          Anterior
-        </button>
-
-        <span>
-          Página {paginaAtual} de {totalPaginas}
-        </span>
-
-        <button
-          disabled={paginaAtual === totalPaginas}
-          onClick={() => setPaginaAtual((p) => p + 1)}
-          className="px-3 py-1 border rounded disabled:opacity-40"
-        >
-          Próxima
-        </button>
+        {/* PAGINAÇÃO */}
+        <div className="px-6 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Página {paginaAtual} de {totalPaginas}</p>
+          <div className="flex gap-2">
+            <button disabled={paginaAtual === 1} onClick={() => setPaginaAtual(p => p - 1)} className="px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl disabled:opacity-30 hover:bg-slate-50 transition-all">Anterior</button>
+            <button disabled={paginaAtual === totalPaginas} onClick={() => setPaginaAtual(p => p + 1)} className="px-4 py-2 text-xs font-bold bg-white border border-slate-200 rounded-xl disabled:opacity-30 hover:bg-slate-50 transition-all">Próxima</button>
+          </div>
+        </div>
       </div>
 
-      {/* modal form */}
-      <Modal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        title={editingId ? "Editar EPI" : "Novo EPI"}
-      >
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="text"
-            className="border p-2 w-full"
-            placeholder="Nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required
-          />
+      {/* FORM MODAL */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Editar Equipamento" : "Cadastrar Novo EPI"}>
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[75vh] md:max-h-[80vh]">
+          <div className="flex-1 overflow-y-auto px-1 py-4 space-y-5 scrollbar-hide">
+            
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Nome do Equipamento</label>
+              <input type="text" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="Ex: Protetor Auditivo Plug..." value={nome} onChange={(e) => setNome(e.target.value)} required />
+            </div>
 
-          <select
-            className="border p-2 w-full"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
-            required
-          >
-            <option value="protecao_auditiva">Proteção auditiva</option>
-            <option value="protecao_visual">Proteção visual</option>
-            <option value="protecao_respiratoria">Proteção respiratória</option>
-            <option value="protecao_maos">Proteção mãos</option>
-            <option value="protecao_cabeca">Proteção cabeça</option>
-            <option value="protecao_pes">Proteção pés</option>
-            <option value="protecao_quedas">Proteção quedas</option>
-            <option value="protecao_corpo">Proteção corpo</option>
-          </select>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Categoria</label>
+              <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none cursor-pointer" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
+                <option value="protecao_auditiva">Proteção auditiva</option>
+                <option value="protecao_visual">Proteção visual</option>
+                <option value="protecao_respiratoria">Proteção respiratória</option>
+                <option value="protecao_maos">Proteção mãos</option>
+                <option value="protecao_cabeca">Proteção cabeça</option>
+                <option value="protecao_pes">Proteção pés</option>
+                <option value="protecao_quedas">Proteção quedas</option>
+                <option value="protecao_corpo">Proteção corpo</option>
+              </select>
+            </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              className="border p-2 w-full"
-              placeholder="CA"
-              value={ca || ""}
-              onChange={(e) => setCa(Number(e.target.value))}
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Número do CA</label>
+                <input type="number" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" placeholder="00000" value={ca || ""} onChange={(e) => setCa(Number(e.target.value))} required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Validade do CA</label>
+                <input type="date" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" value={validadeCa} onChange={(e) => setValidadeCa(e.target.value)} required />
+              </div>
+            </div>
 
-            <input
-              type="date"
-              className="border p-2 w-full"
-              placeholder="Validade do CA"
-              value={validadeCa}
-              onChange={(e) => setValidadeCa(e.target.value)}
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Qtd em Estoque</label>
+                <input type="number" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" placeholder="0" value={estoque || ""} onChange={(e) => setEstoque(Number(e.target.value))} required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Nível de Proteção</label>
+                <input type="text" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" placeholder="Ex: 18dB, Classe B..." value={nivelProtecao} onChange={(e) => setNivelProtecao(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Descrição Detalhada</label>
+              <textarea className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 transition-all h-24 resize-none" placeholder="Características técnicas do equipamento..." value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="number"
-              className="border p-2 w-full"
-              placeholder="Estoque"
-              value={estoque || ""}
-              onChange={(e) => setEstoque(Number(e.target.value))}
-              required
-            />
-
-            <input
-              type="text"
-              className="border p-2 w-full"
-              placeholder="Nível de proteção"
-              value={nivelProtecao}
-              onChange={(e) => setNivelProtecao(e.target.value)}
-              required
-            />
+          <div className="pt-4 mt-2 border-t border-slate-100">
+            <button className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95">
+              {editingId ? "Salvar Alterações" : "Cadastrar EPI"}
+            </button>
           </div>
-
-          <textarea
-            className="border p-2 w-full"
-            placeholder="Descrição"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-          />
-
-          <button className="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">
-            {editingId ? "Salvar alterações" : "Criar EPI"}
-          </button>
         </form>
       </Modal>
 
-      {/* modal delete */}
-      <ConfirmModal
-        open={openDelete}
-        title="Excluir EPI"
-        message="Tem certeza que deseja excluir este EPI?"
-        onClose={() => setOpenDelete(false)}
-        onConfirm={() => deleteId && handleDelete(deleteId)}
-      />
+      <ConfirmModal open={openDelete} title="Excluir EPI" message="Tem certeza que deseja remover este equipamento? Esta ação não pode ser desfeita." onClose={() => setOpenDelete(false)} onConfirm={() => deleteId && handleDelete(deleteId)} />
     </div>
   );
 }

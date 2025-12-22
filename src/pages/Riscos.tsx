@@ -273,21 +273,21 @@ export default function Riscos() {
         conteudo={iaLoading ? "⌛ Sentinel está processando os dados de segurança..." : iaTexto}
       />
 
-      {/* FORM MODAL */}
+      {/* FORM MODAL COM AJUSTES DE RESPIRO E ALTURA */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Ajustar Risco" : "Registrar Novo Risco"}>
-        <form onSubmit={handleSubmit} className="flex flex-col max-h-[85vh]">
-          {/* ÁREA COM SCROLL INTERNO PARA MOBILE/TELA PEQUENA */}
-          <div className="flex-1 overflow-y-auto pr-2 space-y-5 pt-4 scrollbar-thin scrollbar-thumb-slate-200">
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[75vh] md:max-h-[80vh]">
+          {/* CONTAINER DE CAMPOS COM MARGEM DE SEGURANÇA (SCROLL) */}
+          <div className="flex-1 overflow-y-auto px-1 py-4 space-y-6 scrollbar-hide">
             
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Identificação do Risco</label>
-              <input type="text" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" placeholder="Ex: Ruído excessivo, Queda de altura..." value={nome} onChange={(e) => setNome(e.target.value)} required />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Identificação do Risco</label>
+              <input type="text" className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm" placeholder="Ex: Ruído excessivo..." value={nome} onChange={(e) => setNome(e.target.value)} required />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Categoria</label>
-                <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Categoria</label>
+                <select className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none shadow-sm cursor-pointer" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
                   <option value="fisico">Físico</option>
                   <option value="quimico">Químico</option>
                   <option value="biologico">Biológico</option>
@@ -295,52 +295,48 @@ export default function Riscos() {
                   <option value="acidente">Acidente</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Setor</label>
-                <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={setorId} onChange={(e) => setSetorId(e.target.value)} required>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Setor</label>
+                <select className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none shadow-sm cursor-pointer" value={setorId} onChange={(e) => setSetorId(e.target.value)} required>
                   <option value="">Onde ocorre?</option>
                   {setores.map((s) => <option key={s._id} value={s._id}>{s.nome}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <p className="text-[10px] font-black uppercase text-slate-400 mb-4 text-center tracking-widest text-rose-600">Matriz de Criticidade</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 text-center">
-                  <label className="text-xs font-bold text-slate-600">Probabilidade: {probabilidade}</label>
-                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={probabilidade} onChange={(e) => setProbabilidade(Number(e.target.value))} />
+            <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
+              <p className="text-[10px] font-black uppercase text-rose-600 text-center tracking-[0.2em]">Matriz de Criticidade</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4 text-center">
+                  <div className="flex justify-between items-center px-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Probabilidade</label>
+                    <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-black">{probabilidade}</span>
+                  </div>
+                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-rose-600" value={probabilidade} onChange={(e) => setProbabilidade(Number(e.target.value))} />
                 </div>
-                <div className="space-y-2 text-center">
-                  <label className="text-xs font-bold text-slate-600">Severidade: {severidade}</label>
-                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={severidade} onChange={(e) => setSeveridade(Number(e.target.value))} />
+                <div className="space-y-4 text-center">
+                  <div className="flex justify-between items-center px-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Severidade</label>
+                    <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-black">{severidade}</span>
+                  </div>
+                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-rose-600" value={severidade} onChange={(e) => setSeveridade(Number(e.target.value))} />
                 </div>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Medidas de Controle Atuais</label>
-              <textarea className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all h-20 resize-none" placeholder="O que já está sendo feito?" value={medidas} onChange={(e) => setMedidas(e.target.value)} />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Medidas de Controle</label>
+              <textarea className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all h-24 resize-none shadow-sm" placeholder="Medidas adotadas..." value={medidas} onChange={(e) => setMedidas(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Responsável</label>
-                <input 
-                  type="text" 
-                  className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-sm" 
-                  placeholder="Nome do gestor" 
-                  value={responsavel} 
-                  onChange={(e) => setResponsavel(e.target.value)} 
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Responsável</label>
+                <input type="text" className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-sm shadow-sm" placeholder="Nome do gestor" value={responsavel} onChange={(e) => setResponsavel(e.target.value)} />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Status Atual</label>
-                <select 
-                  className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm" 
-                  value={status} 
-                  onChange={(e) => setStatus(e.target.value)}
-                >
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-wider">Status</label>
+                <select className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm shadow-sm cursor-pointer" value={status} onChange={(e) => setStatus(e.target.value)}>
                   <option value="ativo">⚠️ ATIVO</option>
                   <option value="controlado">✅ CONTROLADO</option>
                 </select>
@@ -348,16 +344,16 @@ export default function Riscos() {
             </div>
           </div>
 
-          {/* BOTÃO FIXO NO RODAPÉ DO MODAL */}
-          <div className="pt-4 mt-2 border-t border-slate-100 bg-white">
-            <button className="w-full bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">
+          {/* RODAPÉ DO FORMULÁRIO COM ESPAÇAMENTO INFERIOR (O "RESPIRO") */}
+          <div className="pt-6 pb-2 mt-2 border-t border-slate-100">
+            <button className="w-full bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-[0.98]">
               {editingId ? "Salvar Alterações" : "Registrar Risco"}
             </button>
           </div>
         </form>
       </Modal>
 
-      <ConfirmModal open={openDelete} title="Remover Risco" message="Tem certeza? Isso removerá o risco do mapa de calor e dos relatórios de segurança." onClose={() => setOpenDelete(false)} onConfirm={() => deleteId && handleDelete(deleteId)} />
+      <ConfirmModal open={openDelete} title="Remover Risco" message="Tem certeza?" onClose={() => setOpenDelete(false)} onConfirm={() => deleteId && handleDelete(deleteId)} />
     </div>
   );
 }
