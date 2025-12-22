@@ -51,7 +51,7 @@ export default function Relatorios() {
       body: [
         ['Setores Mapeados', riscos.length],
         ['Total de Riscos Identificados', riscos.reduce((s, r) => s + r.totalRiscos, 0)],
-        ['EPIs Vencidos', episStatus.vencidos.length],
+        ['EPIs com CA Vencidos', episStatus.vencidos.length],
         ['EPIs em Alerta de Estoque', episStatus.semEstoque.length],
       ],
       theme: 'striped',
@@ -73,7 +73,7 @@ export default function Relatorios() {
 
     if (episStatus.vencidos.length > 0) {
       doc.addPage();
-      doc.text("3. EPIS VENCIDOS (AÇÃO IMEDIATA)", 15, 20);
+      doc.text("3. EPIS COM CA VENCIDOS (AÇÃO IMEDIATA)", 15, 20);
       autoTable(doc, {
         startY: 25,
         head: [['Equipamento', 'Data de Validade']],
@@ -187,7 +187,7 @@ export default function Relatorios() {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Status de Validade</p>
-              <p className="text-sm font-black">{episStatus.vencidos.length > 0 ? `${episStatus.vencidos.length} EPIs VENCIDOS` : 'TUDO EM CONFORMIDADE'}</p>
+              <p className="text-sm font-black">{episStatus.vencidos.length > 0 ? `${episStatus.vencidos.length} EPIs COM CA VENCIDOS` : 'TUDO EM CONFORMIDADE'}</p>
             </div>
           </div>
           <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50 text-amber-700 flex items-center gap-4">
