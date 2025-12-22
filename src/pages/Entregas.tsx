@@ -91,10 +91,12 @@ export default function Entregas() {
 
   useEffect(() => { load(); }, []);
 
+  // PDF TURBINADO: Data, Hora, Validade CA e Matrícula
   async function generatePdfReceipt(en: IEntrega) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
+    // Cabeçalho
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.text("FICHA DE CONTROLE DE EPI", pageWidth / 2, 20, { align: "center" });
@@ -102,35 +104,63 @@ export default function Entregas() {
     doc.setLineWidth(0.5);
     doc.line(10, 25, pageWidth - 10, 25);
 
+    // Texto Jurídico NR-6
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     const termo = `Declaramos para os devidos fins que recebi da empresa os Equipamentos de Proteção Individual (EPIs) abaixo listados, novos e em perfeitas condições de uso, em conformidade com a NR-6 da Portaria 3.214/78. Comprometo-me a utilizá-los apenas para a finalidade a que se destinam e a zelar pela sua guarda e conservação.`;
     const splitTermo = doc.splitTextToSize(termo, pageWidth - 20);
     doc.text(splitTermo, 10, 35);
 
+    // Dados do Colaborador e Horário
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
     doc.text(`Colaborador: ${en.colaboradorId?.nome || "---"}`, 10, 55);
-    doc.text(`Data: ${new Date(en.dataEntrega).toLocaleDateString()}`, pageWidth - 50, 55);
+    doc.text(`Matrícula: ${en.colaboradorId?.matricula || "---"}`, 120, 55);
+    
+    // DATA E HORA DA ENTREGA
+    const dataHora = new Date(en.dataEntrega);
+    const dataFormatada = dataHora.toLocaleDateString();
+    const horaFormatada = dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    doc.text(`Data da Entrega: ${dataFormatada} às ${horaFormatada}`, 10, 62);
 
+    // Tabela de Itens (Corrigida e Ampliada)
     doc.setFillColor(245, 245, 245);
-    doc.rect(10, 65, pageWidth - 20, 10, "F");
-    doc.text("Item", 12, 72);
-    doc.text("CA", 120, 72);
-    doc.text("Qtd", 150, 72);
+    doc.rect(10, 70, pageWidth - 20, 10, "F");
+    doc.text("Item / Equipamento", 12, 77);
+    doc.text("CA", 100, 77);
+    doc.text("Validade CA", 130, 77);
+    doc.text("Qtd", 175, 77);
 
     doc.setFont("helvetica", "normal");
-    doc.text(en.epiSnapshot?.nome || en.epiId?.nome || "---", 12, 82);
-    doc.text(String(en.epiSnapshot?.ca || "---"), 120, 82);
-    doc.text(String(en.quantidade), 150, 82);
+    doc.setFontSize(9);
+    doc.text(en.epiSnapshot?.nome || en.epiId?.nome || "---", 12, 87);
+    doc.text(String(en.epiSnapshot?.ca || "---"), 100, 87);
+    
+    // VALIDADE DO CA NO PDF
+    const validadeStr = en.epiSnapshot?.validade_ca 
+      ? new Date(en.epiSnapshot.validade_ca).toLocaleDateString() 
+      : "---";
+    doc.text(validadeStr, 130, 87);
+    
+    doc.text(String(en.quantidade), 175, 87);
 
+    // Área da Assinatura
     if (en.assinaturaBase64) {
       doc.setFont("helvetica", "bold");
-      doc.text("Assinatura do Recebedor:", 10, 110);
-      doc.addImage(en.assinaturaBase64, "PNG", 10, 115, 50, 20);
-      doc.line(10, 136, 70, 136);
+      doc.text("Assinatura do Recebedor:", 10, 115);
+      doc.addImage(en.assinaturaBase64, "PNG", 10, 120, 60, 25);
+      doc.setLineWidth(0.2);
+      doc.line(10, 146, 80, 146);
+      doc.setFontSize(7);
+      doc.text("Documento assinado eletronicamente via Sistema de Gestão de EPI", 10, 150);
     }
 
-    doc.save(`Recibo_EPI_${en.colaboradorId?.nome}.pdf`);
+    // Rodapé
+    doc.setFontSize(8);
+    doc.text(`ID do Registro: ${en._id}`, 10, 280);
+    doc.text(`Recibo gerado em: ${new Date().toLocaleString()}`, 10, 285);
+
+    doc.save(`Recibo_EPI_${en.colaboradorId?.nome.replace(/\s+/g, '_')}.pdf`);
   }
 
   const resizeCanvas = (pad: any, container: HTMLDivElement | null) => {
