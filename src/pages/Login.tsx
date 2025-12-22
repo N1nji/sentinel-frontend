@@ -47,7 +47,7 @@ export default function Login() {
               </div>
             </div>
 
-            <h2 className="text-3xl font-black text-white text-center mb-2 tracking-tight">
+            <h2 className="text-3xl font-black text-black text-center mb-2 tracking-tight">
               Sentinel <span className="text-indigo-500">AI</span>
             </h2>
             <p className="text-slate-400 text-center text-sm mb-8 font-medium">
