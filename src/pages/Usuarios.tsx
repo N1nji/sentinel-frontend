@@ -11,6 +11,7 @@ import {
   ClipboardDocumentIcon,
   CheckIcon
 } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "lucide-react";
 
 interface IUsuario {
   _id: string;
@@ -88,6 +89,7 @@ export default function Usuarios() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
+          <UserCircleIcon className="h-8 w-8 text-indigo-600" />
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Gestão de Acessos</h1>
           <p className="text-slate-500 font-medium">{usuarios.length} usuários registrados no sistema</p>
         </div>

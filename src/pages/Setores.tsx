@@ -12,6 +12,7 @@ import {
   UserIcon,
   CheckCircleIcon,
   XCircleIcon,
+  BuildingOffice2Icon,
 } from "@heroicons/react/24/solid";
 
 interface Setor {
@@ -126,6 +127,7 @@ export default function Setores() {
       {/* CABEÇALHO */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
+          <BuildingOffice2Icon className="h-8 w-8 text-indigo-600" />
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Setores</h1>
           <p className="text-gray-500 text-sm font-medium">
             Gerenciamento de áreas e responsabilidades ({setores.length} total)
