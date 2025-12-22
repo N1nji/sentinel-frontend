@@ -126,54 +126,77 @@ export default function DashboardAdvanced() {
     total: m.count ?? m.total ?? 0,
   }));
 
- async function handleGenerateInsights() {
-    if (!data) return;
-    try {
-      setInsightsLoading(true);
-      const resumo = [
-        "Top EPIs:", 
-        ...data.topEpis.slice(0, 5).map((e) => `${e._id} = ${e.total}`), 
-        "\nTop Setores:", 
-        ...data.entregasPorSetor.slice(0, 5).map((s) => `${s._id} = ${s.total}`)
-      ].join("\n");
-      
-      const resp = await generateInsights(resumo);
-      const originalText = resp?.insights || "Sem resposta da IA.";
+async function handleGenerateInsights() {
+  if (!data) return;
+  try {
+    setInsightsLoading(true);
+    const resumo = [
+      "Top EPIs:", 
+      ...data.topEpis.slice(0, 5).map((e) => `${e._id} = ${e.total}`), 
+      "\nTop Setores:", 
+      ...data.entregasPorSetor.slice(0, 5).map((s) => `${s._id} = ${s.total}`)
+    ].join("\n");
+    
+    const resp = await generateInsights(resumo);
+    const originalText = resp?.insights || "Sem resposta da IA.";
 
-      // --- MELHORIA AQUI: FORMATANDO O TEXTO DA IA ---
-      // Se o texto não começar com emoji, vamos adicionar um cabeçalho padrão
-      // e garantir que pontos de lista ou tópicos fiquem destacados.
-      const formattedInsights = `📊 ANÁLISE ESTRATÉGICA DA IA
+    // MELHORIA: Regex mais inteligente. 
+    // ^\s* -> Garante que só pega o marcador se for no INÍCIO da linha
+    const cleanText = originalText
+      .replace(/^\s*[\d\.]+\s*/gm, '💡 ') // Troca "1." por lâmpada
+      .replace(/^\s*[•*-]\s*/gm, '  • '); // Mantém bullet points normais para não virar tudo título
 
-${originalText.replace(/(\d\.|[•*-])\s?/g, '💡 ')} 
+    const formattedInsights = `📊 ANÁLISE ESTRATÉGICA DA IA
+
+${cleanText}
 
 ---
 Gerado automaticamente pelo motor de IA Sentinel.`;
-      
-      setInsightsText(formattedInsights);
-      setInsightsOpen(true);
-    } catch (err) {
-      setInsightsText("⚠️ Erro ao gerar insights.");
-      setInsightsOpen(true);
-    } finally {
-      setInsightsLoading(false);
-    }
+    
+    setInsightsText(formattedInsights);
+    setInsightsOpen(true);
+  } catch (err) {
+    setInsightsText("⚠️ Não foi possível processar os insights agora. Tente novamente em instantes.");
+    setInsightsOpen(true);
+  } finally {
+    setInsightsLoading(false);
   }
+}
 
-  async function handleForecast(epiId: string | undefined) {
-    if (!epiId) return alert("Selecione um EPI antes!");
-    try {
-      setForecastLoading(true);
-      const result = await fetchForecast(epiId, 12, 3);
-      setInsightsText(buildForecastText(result));
+async function handleForecast(epiId: string | undefined) {
+  if (!epiId) return; // Filtro já validado pela interface
+
+  try {
+    setForecastLoading(true);
+    const result = await fetchForecast(epiId, 12, 3);
+    
+    // Validar se o backend retornou valores zerados
+    if (!result.values || result.values.length < 2) {
+      setInsightsText(`⚠️ DADOS INSUFICIENTES
+
+A inteligência ainda não possui histórico de movimentação suficiente para este EPI específico para gerar uma previsão confiável.
+
+💡 Recomendação: Continue registrando as entregas normalmente. O sistema precisa de pelo menos 2 a 3 meses de histórico para calcular a tendência de consumo.`);
       setInsightsOpen(true);
-    } catch (err) {
-      alert("Erro ao gerar forecast.");
-    } finally {
-      setForecastLoading(false);
+      return;
     }
-  }
 
+    setInsightsText(buildForecastText(result));
+    setInsightsOpen(true);
+  } catch (err) {
+    // Em vez de alert genérico, explica o que pode ter ocorrido
+    setInsightsText(`📌 AVISO DE PROCESSAMENTO
+
+Não conseguimos calcular a previsão para este item. Isso geralmente acontece quando:
+1. O item é novo no estoque.
+2. Não houve consumo nos últimos meses.
+
+Tente selecionar um EPI com maior volume de saídas.`);
+    setInsightsOpen(true);
+  } finally {
+    setForecastLoading(false);
+  }
+}
   if (loading) return <div className="p-10 text-center animate-pulse text-gray-500">🚀 Sincronizando dados...</div>;
   if (!data) return <div className="p-10 text-center text-red-500">❌ Falha na conexão com o servidor.</div>;
 
