@@ -1,6 +1,6 @@
 // src/components/AiChatModal.tsx
 import { useState, useEffect } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline"; // Mudei para outline para combinar com o resto
+import { XMarkIcon } from "@heroicons/react/24/outline"; 
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 
@@ -44,7 +44,7 @@ export default function AiChatModal({ open, onClose }: any) {
         "
         onClick={(e) => e.stopPropagation()}
       >
-        {/* BOTÃO FECHAR FLUTUANTE */}
+        {/* BOTÃO FECHAR - Ajustado z-index e posição para não conflitar com PDF */}
         <button
           type="button"
           onClick={(e) => {
@@ -52,10 +52,10 @@ export default function AiChatModal({ open, onClose }: any) {
             handleClose();
           }}
           className="
-            absolute top-4 right-4 z-[80] 
-            p-2 rounded-full bg-slate-100/50 hover:bg-red-50 
+            absolute top-4 right-4 z-[100] 
+            p-2 rounded-full bg-white shadow-lg hover:bg-red-50 
             text-slate-500 hover:text-red-600 
-            transition-all duration-200 backdrop-blur-md
+            transition-all duration-200 border border-slate-100
             group
           "
         >
@@ -63,27 +63,33 @@ export default function AiChatModal({ open, onClose }: any) {
         </button>
 
         {/* ESTRUTURA INTERNA */}
-        <div className="flex w-full h-full relative">
+        <div className="flex w-full h-full relative overflow-hidden">
           <ChatSidebar
             onSelect={setSelectedChatId}
             activeId={selectedChatId}
           />
 
-          <div className="flex-1 bg-white relative">
+          <div className="flex-1 bg-white relative h-full overflow-hidden">
             <ChatWindow chatId={selectedChatId} />
           </div>
         </div>
       </div>
 
-      {/* ESTILOS DE ANIMAÇÃO (Pode colocar no seu index.css ou usar Tailwind arbitrary values) */}
+      {/* ESTILOS DE ANIMAÇÃO CORRIGIDOS (Ajuste no translate para não bugar a centralização) */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
         @keyframes scaleUp {
-          from { opacity: 0; transform: translate(-1/2%, -1/2%) scale(0.95); }
-          to { opacity: 1; transform: translate(-1/2%, -1/2%) scale(1); }
+          from { 
+            opacity: 0; 
+            transform: translate(-50%, -50%) scale(0.95); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1); 
+          }
         }
         .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
         .animate-scaleUp { animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
