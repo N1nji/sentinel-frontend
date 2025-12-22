@@ -10,10 +10,11 @@ import {
   EllipsisVerticalIcon,
   TrashIcon,
   PencilSquareIcon,
+  ChatBubbleLeftRightIcon,
+  PlusIcon
 } from "@heroicons/react/24/outline";
 import ConfirmModal from "./ConfirmModal";
 import RenameChatModal from "./RenameChatModal";
-
 
 export default function ChatSidebar({
   onSelect,
@@ -24,18 +25,12 @@ export default function ChatSidebar({
 }) {
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // menu (...)
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-
-  // confirm modal
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<any>(null);
-
   const [renameOpen, setRenameOpen] = useState(false);
   const [chatToRename, setChatToRename] = useState<any>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
 
   async function load() {
     setLoading(true);
@@ -44,19 +39,16 @@ export default function ChatSidebar({
     setLoading(false);
   }
 
-  
   useEffect(() => {
     load();
-  function handleClickOutside(e: MouseEvent) {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      setMenuOpenId(null);
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpenId(null);
+      }
     }
-  }
-
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, []);
-
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function handleNovo() {
     const novo = await criarChat("Novo chat");
@@ -79,52 +71,55 @@ export default function ChatSidebar({
   }
 
   function openRenameModal(chat: any) {
-  setChatToRename(chat);
-  setRenameOpen(true);
-  setMenuOpenId(null);
-}
+    setChatToRename(chat);
+    setRenameOpen(true);
+    setMenuOpenId(null);
+  }
 
-async function confirmRename(value: string) {
-  if (!chatToRename) return;
-
-  const atualizado = await renomearChat(chatToRename._id, value);
-
-  setChats((s) =>
-    s.map((c) => (c._id === chatToRename._id ? atualizado : c))
-  );
-
-  setRenameOpen(false);
-  setChatToRename(null);
-}
-
+  async function confirmRename(value: string) {
+    if (!chatToRename) return;
+    const atualizado = await renomearChat(chatToRename._id, value);
+    setChats((s) => s.map((c) => (c._id === chatToRename._id ? atualizado : c)));
+    setRenameOpen(false);
+    setChatToRename(null);
+  }
 
   return (
     <>
-      <aside className="w-72 bg-gray-900 text-white p-4 flex flex-col gap-3">
+      <aside className="w-80 bg-slate-950 text-white p-4 flex flex-col gap-4 border-r border-slate-800">
         {/* HEADER */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Conversas</h2>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <ChatBubbleLeftRightIcon className="h-5 w-5 text-indigo-500" />
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Conversas</h2>
+          </div>
           <button
             onClick={handleNovo}
-            className="bg-blue-800 hover:bg-blue-900 px-3 py-1.5 rounded-md text-sm font-medium shadow transition"
+            className="bg-indigo-600 hover:bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-900/20 transition-all active:scale-95 group"
+            title="Novo Chat"
           >
-            + Novo chat
+            <PlusIcon className="h-5 w-5 text-white group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
         {/* LISTA */}
-        <div className="flex-1 overflow-auto space-y-1">
-          {loading && <div className="text-sm">Carregando...</div>}
+        <div className="flex-1 overflow-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-slate-800">
+          {loading && (
+            <div className="flex items-center gap-2 text-slate-500 animate-pulse p-3">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+              <span className="text-xs font-bold uppercase">Sincronizando...</span>
+            </div>
+          )}
 
           {chats.map((c) => (
             <div
               key={c._id}
               className={`
-                group relative p-2 rounded flex items-center gap-2 cursor-pointer
+                group relative p-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200
                 ${
                   activeId === c._id
-                    ? "bg-blue-600"
-                    : "hover:bg-gray-800"
+                    ? "bg-indigo-600 shadow-xl shadow-indigo-900/40"
+                    : "hover:bg-slate-900 bg-slate-900/30 border border-transparent hover:border-slate-700"
                 }
               `}
             >
@@ -133,50 +128,62 @@ async function confirmRename(value: string) {
                 className="flex-1 text-left overflow-hidden"
                 onClick={() => onSelect(c._id)}
               >
-                <div className="font-medium truncate">{c.titulo}</div>
-                <div className="text-xs text-gray-300">
-                  {new Date(c.updatedAt || c.createdAt).toLocaleString()}
+                <div className={`font-bold truncate text-sm ${activeId === c._id ? "text-white" : "text-slate-200"}`}>
+                  {c.titulo}
+                </div>
+                <div className={`text-[10px] mt-0.5 font-medium ${activeId === c._id ? "text-indigo-200" : "text-slate-500"}`}>
+                  {new Date(c.updatedAt || c.createdAt).toLocaleDateString()} • {new Date(c.updatedAt || c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </button>
 
               {/* MENU (...) */}
               <button
-                onClick={() =>
-                  setMenuOpenId(menuOpenId === c._id ? null : c._id)
-                }
-                className="opacity-0 group-hover:opacity-100 transition"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpenId(menuOpenId === c._id ? null : c._id);
+                }}
+                className={`p-1 rounded-lg transition-all ${
+                  activeId === c._id 
+                  ? "hover:bg-indigo-500 text-indigo-200" 
+                  : "opacity-0 group-hover:opacity-100 hover:bg-slate-800 text-slate-400"
+                }`}
               >
-                <EllipsisVerticalIcon className="h-5 w-5 text-gray-300 hover:text-white" />
+                <EllipsisVerticalIcon className="h-5 w-5" />
               </button>
 
               {/* DROPDOWN */}
               {menuOpenId === c._id && (
                 <div
-                ref={menuRef}
-                className="absolute right-2 top-10 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 w-36">
+                  ref={menuRef}
+                  className="absolute right-2 top-12 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 w-40 overflow-hidden backdrop-blur-xl"
+                >
                   <button
                     onClick={() => openRenameModal(c)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-700 w-full text-left"
+                    className="flex items-center gap-2 px-4 py-3 text-xs font-bold hover:bg-slate-800 w-full text-left transition-colors text-slate-300 hover:text-white"
                   >
-                    <PencilSquareIcon className="h-4 w-4" />
-                    Renomear
+                    <PencilSquareIcon className="h-4 w-4 text-indigo-400" />
+                    RENOMEAR
                   </button>
 
                   <button
                     onClick={() => openDeleteModal(c)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-gray-700 w-full text-left"
+                    className="flex items-center gap-2 px-4 py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 w-full text-left transition-colors"
                   >
                     <TrashIcon className="h-4 w-4" />
-                    Excluir
+                    EXCLUIR
                   </button>
                 </div>
               )}
             </div>
           ))}
         </div>
+        
+        {/* FOOTER DISCRETO */}
+        <div className="pt-4 border-t border-slate-800 text-[10px] text-slate-600 font-bold uppercase tracking-widest text-center">
+          Sentinel AI History
+        </div>
       </aside>
 
-      {/* CONFIRM MODAL (REUTILIZANDO O SEU 💙) */}
       <ConfirmModal
         open={confirmOpen}
         title="Excluir conversa"
@@ -186,17 +193,17 @@ async function confirmRename(value: string) {
           setConfirmOpen(false);
           setChatToDelete(null);
         }}
-        />
+      />
 
-        <RenameChatModal
-          open={renameOpen}
-          initialValue={chatToRename?.titulo || ""}
-          onConfirm={confirmRename}
-          onClose={() => {
-            setRenameOpen(false);
-            setChatToRename(null);
-          }}
-        />
+      <RenameChatModal
+        open={renameOpen}
+        initialValue={chatToRename?.titulo || ""}
+        onConfirm={confirmRename}
+        onClose={() => {
+          setRenameOpen(false);
+          setChatToRename(null);
+        }}
+      />
     </>
   );
 }

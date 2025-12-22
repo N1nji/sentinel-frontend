@@ -1,6 +1,13 @@
-// src/components/ChatWindow.tsx
 import { useEffect, useRef, useState } from "react";
 import { getChat, enviarMensagem, renomearChat, exportChatPdf } from "../services/chatService";
+import { 
+  PaperAirplaneIcon, 
+  ArrowDownTrayIcon, 
+  PencilSquareIcon,
+  SunIcon,
+  MoonIcon,
+  SparklesIcon
+} from "@heroicons/react/24/outline";
 
 export default function ChatWindow({ chatId }: { chatId: string | null }) {
   const [chat, setChat] = useState<any>(null);
@@ -12,7 +19,6 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
 
   const ref = useRef<HTMLDivElement | null>(null);
 
-  // Carrega o chat selecionado
   useEffect(() => {
     if (!chatId) {
       setChat(null);
@@ -25,19 +31,18 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
     })();
   }, [chatId]);
 
-  // Auto-scroll
   useEffect(() => {
-    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
-  }, [chat]);
+    if (ref.current) ref.current.scrollTo({ top: ref.current.scrollHeight, behavior: 'smooth' });
+  }, [chat, loading]);
 
-  // Enviar mensagem
   async function handleSend() {
-    if (!chatId || !input.trim()) return;
+    if (!chatId || !input.trim() || loading) return;
+    const msg = input.trim();
+    setInput("");
     setLoading(true);
     try {
-      const res = await enviarMensagem(chatId, input.trim());
+      const res = await enviarMensagem(chatId, msg);
       setChat(res.chat);
-      setInput("");
     } catch {
       alert("Erro ao enviar mensagem");
     } finally {
@@ -45,157 +50,110 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
     }
   }
 
-  // Renomear
-  async function handleRename() {
-    if (!chatId) return;
-    try {
-      const res = await renomearChat(chatId, titleValue.trim() || "Sem título");
-      setChat(res);
-      setEditingTitle(false);
-    } catch {
-      alert("Erro ao renomear");
-    }
-  }
-
-  // Exportar PDF
-  async function handleExport() {
-    if (!chatId) return;
-    try {
-      const blob = await exportChatPdf(chatId);
-      const url = window.URL.createObjectURL(new Blob([blob]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${chat.titulo || "chat"}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      alert("Erro ao exportar PDF");
-    }
-  }
-
-  // Caso nenhum chat esteja selecionado
   if (!chatId) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500">
-        Selecione ou crie uma conversa
+      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 text-gray-400">
+        <SparklesIcon className="h-16 w-16 mb-4 opacity-20" />
+        <p className="font-medium">Como posso ajudar na segurança do trabalho hoje?</p>
       </div>
     );
   }
 
   return (
-    <div
-      className={`flex-1 flex flex-col ${
-        dark ? "bg-gray-800 text-white" : "bg-white text-black"
-      }`}
-    >
-      {/* HEADER */}
-      <div className="p-4 border-b flex items-center justify-between pr-20 relative">
-
-        {/* TÍTULO */}
-        <div>
+    <div className={`flex-1 flex flex-col transition-colors duration-300 ${dark ? "bg-slate-900" : "bg-white"}`}>
+      
+      {/* HEADER ELEGANTE */}
+      <header className={`px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-md ${dark ? "border-slate-800 bg-slate-900/80 text-white" : "border-gray-100 bg-white/80"}`}>
+        <div className="flex items-center gap-3">
           {!editingTitle ? (
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold">{chat?.titulo}</h3>
-              <span className="ml-4 text-xs text-gray-400">
-                Você está neste chat
-              </span>
+            <div className="group flex items-center gap-2">
+              <h3 className="text-lg font-bold tracking-tight">{chat?.titulo}</h3>
+              <button onClick={() => setEditingTitle(true)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <PencilSquareIcon className="h-4 w-4 text-gray-400 hover:text-indigo-500" />
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <input
-                value={titleValue}
+              <input 
+                autoFocus
+                value={titleValue} 
                 onChange={(e) => setTitleValue(e.target.value)}
-                className="border p-1 rounded"
-              />
-              <button
-                onClick={handleRename}
-                className="bg-blue-600 text-white px-2 py-1 rounded"
-              >
-                Salvar
-              </button>
-              <button
-                onClick={() => {
-                  setEditingTitle(false);
-                  setTitleValue(chat?.titulo || "");
+                onBlur={async () => {
+                    await renomearChat(chatId, titleValue);
+                    setEditingTitle(false);
                 }}
-                className="text-sm text-gray-500"
-              >
-                Cancelar
-              </button>
+                className={`text-sm px-3 py-1 rounded-lg border focus:ring-2 focus:ring-indigo-500 outline-none ${dark ? "bg-slate-800 border-slate-700" : "bg-gray-50 border-gray-200"}`}
+              />
             </div>
           )}
         </div>
 
-        {/* BOTÕES DO HEADER */}
-        <div className="flex items-center gap-2 z-10">
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="bg-blue-800 hover:bg-blue-900 px-2 py-1 border rounded text-sm font-medium shadow transition"
-          >
-            {dark ? "Modo claro" : "Modo escuro"}
+        <div className="flex items-center gap-2">
+          <button onClick={() => setDark(!dark)} className={`p-2 rounded-xl transition-all ${dark ? "bg-slate-800 text-yellow-400 hover:bg-slate-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+            {dark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
           </button>
+          <button onClick={() => exportChatPdf(chatId)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all active:scale-95">
+            <ArrowDownTrayIcon className="h-4 w-4" /> PDF
+          </button>
+        </div>
+      </header>
 
-          <button
-            onClick={handleExport}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg shadow text-sm"
-          >
-            Exportar PDF
-          </button>
+      {/* ÁREA DE MENSAGENS */}
+      <div ref={ref} className="flex-1 overflow-y-auto px-4 py-8 space-y-6 scrollbar-thin scrollbar-thumb-gray-300">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {chat?.mensagens?.map((m: any, i: number) => (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={`
+                relative max-w-[85%] px-5 py-3 rounded-2xl shadow-sm text-sm leading-relaxed
+                ${m.role === "user" 
+                  ? "bg-indigo-600 text-white rounded-br-none" 
+                  : dark ? "bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700" : "bg-gray-100 text-slate-800 rounded-bl-none"
+                }
+              `}>
+                <span className={`text-[10px] font-black uppercase mb-1 block opacity-50`}>
+                  {m.role === "user" ? "Você" : "Sentinel AI"}
+                </span>
+                <div className="whitespace-pre-wrap">{m.content}</div>
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex justify-start animate-pulse">
+              <div className={`p-4 rounded-2xl rounded-bl-none ${dark ? "bg-slate-800" : "bg-gray-100"}`}>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* MENSAGENS */}
-      <div
-        ref={ref}
-        className="flex-1 p-4 overflow-auto space-y-3"
-      >
-        {chat?.mensagens?.map((m: any, i: number) => (
-          <div
-            key={i}
-            className={`max-w-[85%] p-3 rounded shadow-sm ${
-              m.role === "user"
-                ? "ml-auto bg-blue-600 text-white"
-                : "bg-gray-100 text-black"
-            }`}
+      {/* ÁREA DE INPUT FLUTUANTE */}
+      <div className="p-4 md:p-6">
+        <div className={`max-w-3xl mx-auto relative group rounded-2xl shadow-2xl transition-all border ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            placeholder="Pergunte algo sobre NR-6, vencimentos ou treinamentos..."
+            rows={1}
+            className={`w-full p-4 pr-16 rounded-2xl resize-none outline-none text-sm bg-transparent ${dark ? "text-white" : "text-gray-800"}`}
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all ${input.trim() ? "bg-indigo-600 text-white shadow-lg hover:scale-110" : "text-gray-400"}`}
           >
-            <div className="text-sm opacity-80">
-              {m.role === "user" ? "Você" : "IA"}
-            </div>
-            <div className="mt-1 whitespace-pre-wrap">{m.content}</div>
-          </div>
-        ))}
-
-        {loading && (
-          <div className="p-3 rounded bg-gray-200 animate-pulse w-fit">
-            IA está digitando...
-          </div>
-        )}
-      </div>
-
-      {/* INPUT */}
-      <div className="p-4 border-t flex gap-3">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 border p-2 rounded"
-          rows={2}
-          placeholder="Digite sua mensagem..."
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-        />
-
-        <button
-          onClick={handleSend}
-          disabled={loading}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
-        >
-          {loading ? "..." : "Enviar"}
-        </button>
+            <PaperAirplaneIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <p className="text-center text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-widest">
+          Sentinel AI • Assistente de Segurança do Trabalho
+        </p>
       </div>
     </div>
   );

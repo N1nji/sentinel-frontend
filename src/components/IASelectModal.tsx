@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 
 interface IAModalProps {
   open: boolean;
@@ -17,8 +17,8 @@ export default function IAModal({ open, onClose, onApply }: IAModalProps) {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
-        "http://localhost:4000/ia/sugerir",
+      const res = await api.post(
+        "/ia/sugerir",
         { descricaoRisco: texto },
         { headers: { Authorization: `Bearer ${token}` } }
       );
