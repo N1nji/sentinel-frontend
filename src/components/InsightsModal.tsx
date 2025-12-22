@@ -1,5 +1,6 @@
 // src/components/InsightsModal.tsx
-import { XMarkIcon, LightBulbIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { XMarkIcon, LightBulbIcon, DocumentDuplicateIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 
 export default function InsightsModal({
   open,
@@ -10,12 +11,19 @@ export default function InsightsModal({
   onClose: () => void;
   text: string;
 }) {
+  const [showToast, setShowToast] = useState(false);
+
   if (!open) return null;
 
-  // Função para copiar os insights
+  // Função para copiar os insights com Toast Elegante
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
-    alert("Insights copiados para a área de transferência!");
+    setShowToast(true);
+    
+    // Esconde o toast automaticamente após 2.5 segundos
+    setTimeout(() => {
+      setShowToast(false);
+    }, 2500);
   };
 
   return (
@@ -25,6 +33,14 @@ export default function InsightsModal({
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" 
         onClick={onClose} 
       />
+
+      {/* TOAST NOTIFICATION (FLUTUANTE) */}
+      {showToast && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-3 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-slideDown">
+          <CheckCircleIcon className="h-5 w-5 text-green-400" />
+          <span className="text-sm font-bold tracking-wide">Copiado para a área de transferência!</span>
+        </div>
+      )}
 
       {/* CARD DO MODAL */}
       <div className="
@@ -95,8 +111,13 @@ export default function InsightsModal({
           from { opacity: 0; transform: scale(0.95) translateY(10px); } 
           to { opacity: 1; transform: scale(1) translateY(0); } 
         }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translate(-50%, -20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
         .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
         .animate-scaleUp { animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .animate-slideDown { animation: slideDown 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
       `}</style>
     </div>
   );
