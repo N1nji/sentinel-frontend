@@ -76,29 +76,38 @@ export default function InsightsModal({
             whitespace-pre-wrap bg-slate-50/50 rounded-2xl p-6
             scrollbar-thin scrollbar-thumb-slate-200
           ">
-            {text ? (
-              text.split('\n').map((line, i) => {
-                // Detecta se a linha é um título (começa com emoji de destaque)
-                const isTitle = /^[📊📈🔮💡]/.test(line.trim());
-                // Detecta se a linha é o separador final
-                const isSeparator = line.startsWith('---');
+              {text ? (
+                text.split('\n').map((line, i) => {
+                  // 1. Identifica se a linha começa com um dos nossos emojis de título
+                  // O .trim() é essencial para ignorar espaços em branco antes do emoji
+                  const isTitle = /^[📊📈🔮💡🛒🚀⚠️📌]/.test(line.trim());
+                  
+                  // 2. Detecta o separador final
+                  const isSeparator = line.startsWith('---');
 
-                if (isSeparator) {
-                  return <hr key={i} className="my-4 border-slate-200" />;
-                }
+                  if (isSeparator) {
+                    return <hr key={i} className="my-6 border-slate-200" />;
+                  }
 
-                return (
-                  <p key={i} className={`
-                    ${isTitle ? 'text-slate-900 font-black text-base mt-4 mb-2 flex items-center gap-2' : 'mb-1'}
-                    ${line.includes('Gerado automaticamente') ? 'text-[10px] text-slate-400 uppercase tracking-widest font-bold' : ''}
-                  `}>
-                    {line}
-                  </p>
-                );
-              })
-            ) : (
-              "Nenhum insight disponível para este documento."
-            )}
+                  // Se a linha estiver vazia, renderiza um espaço para manter o respiro
+                  if (!line.trim()) return <div key={i} className="h-2" />;
+
+                  return (
+                    <p key={i} className={`
+                      ${isTitle 
+                        ? 'text-slate-900 font-black text-base mt-6 mb-2 flex items-center gap-2' 
+                        : 'text-slate-600 font-medium mb-1 pl-1'}
+                      ${line.includes('Gerado automaticamente') 
+                        ? 'text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-4' 
+                        : ''}
+                    `}>
+                      {line}
+                    </p>
+                  );
+                })
+              ) : (
+                <p className="text-center text-slate-400 py-10">Nenhum insight disponível.</p>
+              )}
           </div>
         </div>
 
