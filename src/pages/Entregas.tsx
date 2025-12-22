@@ -66,10 +66,9 @@ export default function Entregas() {
   const [devolucaoLoading, setDevolucaoLoading] = useState(false);
   const sigPadDevolucaoRef = useRef<any>(null);
 
-  // --- NOVOS STATES DE MELHORIA ---
+  // --- STATES DE MELHORIA ---
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
-  const userTipo = localStorage.getItem("userTipo"); // Pega o cargo do user
-  const isAdmin = userTipo === "admin";
+  const [isAdmin, setIsAdmin] = useState(false); // Agora como state para atualizar a tela
   const token = localStorage.getItem("token");
 
   async function load() {
@@ -94,7 +93,12 @@ export default function Entregas() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    // Captura o tipo do usuário do localStorage assim que entra na tela
+    const userTipo = localStorage.getItem("userTipo");
+    setIsAdmin(userTipo === "admin");
+    load(); 
+  }, []);
 
   // --- LÓGICA DE FILTRAGEM ---
   const entregasFiltradas = entregas.filter(en => {
@@ -322,7 +326,7 @@ export default function Entregas() {
                         {!en.devolvida && (
                           <button title="Registrar Devolução" onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-all"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
                         )}
-                        {/* BOTÃO DE DELETE PROTEGIDO POR CARGO */}
+                        {/* LÓGICA DE ADMIN AQUI */}
                         {isAdmin && (
                           <button title="Excluir Registro" onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-all"><TrashIcon className="h-5 w-5"/></button>
                         )}
