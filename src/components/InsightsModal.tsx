@@ -68,7 +68,7 @@ export default function InsightsModal({
           </button>
         </div>
 
-        {/* CONTEÚDO */}
+        {/* CONTEÚDO COM MELHORIA DE FORMATAÇÃO */}
         <div className="p-6">
           <div className="
             max-h-[60vh] overflow-auto pr-2
@@ -76,7 +76,29 @@ export default function InsightsModal({
             whitespace-pre-wrap bg-slate-50/50 rounded-2xl p-6
             scrollbar-thin scrollbar-thumb-slate-200
           ">
-            {text || "Nenhum insight disponível para este documento."}
+            {text ? (
+              text.split('\n').map((line, i) => {
+                // Detecta se a linha é um título (começa com emoji de destaque)
+                const isTitle = /^[📊📈🔮💡]/.test(line.trim());
+                // Detecta se a linha é o separador final
+                const isSeparator = line.startsWith('---');
+
+                if (isSeparator) {
+                  return <hr key={i} className="my-4 border-slate-200" />;
+                }
+
+                return (
+                  <p key={i} className={`
+                    ${isTitle ? 'text-slate-900 font-black text-base mt-4 mb-2 flex items-center gap-2' : 'mb-1'}
+                    ${line.includes('Gerado automaticamente') ? 'text-[10px] text-slate-400 uppercase tracking-widest font-bold' : ''}
+                  `}>
+                    {line}
+                  </p>
+                );
+              })
+            ) : (
+              "Nenhum insight disponível para este documento."
+            )}
           </div>
         </div>
 

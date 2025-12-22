@@ -39,16 +39,20 @@ function buildForecastText(result: { avg: number; values: number[]; forecast: nu
   const totalPrevisto = result.forecast.reduce((a, b) => a + b, 0);
   const estoqueMinimo = totalPrevisto + 2;
 
-  return `
-🔮 PREVISÃO DE CONSUMO DO EPI
+  return `📊 RELATÓRIO DE PREVISÃO DE DEMANDA
 
-• Consumo médio mensal: ${result.avg} unidades
-• Histórico analisado: ${result.values.join(", ") || "sem histórico"}
-• Previsão para ${meses} meses: ${totalPrevisto} unidades
+📈 MÉTRICAS DE CONSUMO
+• Média Mensal: ${result.avg.toFixed(2)} unidades
+• Base Histórica: ${result.values.join(" → ") || "Sem dados"}
 
-✅ Recomendação:
-Manter pelo menos ${estoqueMinimo} unidades em estoque para evitar ruptura.
-`;
+🔮 PROJEÇÃO PARA ${meses} MESES
+• Demanda Estimada: ${totalPrevisto} unidades distribuídas
+
+💡 RECOMENDAÇÃO ESTRATÉGICA
+Para garantir a segurança operacional e evitar rupturas, recomendamos manter um estoque de segurança de no mínimo ${estoqueMinimo} unidades.
+
+---
+Gerado automaticamente pelo motor de IA Sentinel.`;
 }
 
 export default function DashboardAdvanced() {
