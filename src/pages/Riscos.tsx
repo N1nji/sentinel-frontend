@@ -138,13 +138,13 @@ export default function Riscos() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <ExclamationTriangleIcon className="h-8 w-8 text-rose-600" />
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Mapa de Riscos</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Mapa de Riscos</h1>
           </div>
-          <p className="text-slate-500 font-medium ml-10">Identificação e controle de perigos por setor</p>
+          <p className="text-slate-500 font-medium ml-10 text-sm md:text-base">Identificação e controle de perigos por setor</p>
         </div>
 
         <button
-          className="bg-rose-600 text-white flex items-center justify-center px-6 py-3 rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
+          className="bg-rose-600 text-white flex items-center justify-center px-6 py-3 rounded-2xl font-bold shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95 text-sm md:text-base"
           onClick={() => { resetForm(); setOpenModal(true); }}
         >
           <PlusIcon className="h-5 w-5 mr-2 stroke-[3]" />
@@ -198,7 +198,7 @@ export default function Riscos() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg">
+                    <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-lg whitespace-nowrap">
                       {r.setorId?.nome}
                     </span>
                   </td>
@@ -219,10 +219,10 @@ export default function Riscos() {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200">
+                      <div className="h-7 w-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-600 border border-slate-200 flex-shrink-0">
                         {r.responsavel?.charAt(0).toUpperCase() || "?"}
                       </div>
-                      <span className="text-xs font-semibold text-slate-700">{r.responsavel || "Não definido"}</span>
+                      <span className="text-xs font-semibold text-slate-700 truncate max-w-[100px]">{r.responsavel || "N/D"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-5 text-center">
@@ -231,11 +231,11 @@ export default function Riscos() {
                       className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100"
                     >
                       <SparklesIcon className="h-4 w-4" />
-                      Analisar EPI
+                      Analisar
                     </button>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    <div className="flex justify-end gap-1 md:opacity-0 group-hover:opacity-100 transition-all">
                       <button 
                         onClick={() => { setEditingId(r._id); setNome(r.nome); setCategoria(r.categoria); setSetorId(r.setorId?._id); setDescricao(r.descricao); setProbabilidade(r.probabilidade); setSeveridade(r.severidade); setMedidas(r.medidas); setResponsavel(r.responsavel); setStatus(r.status); setOpenModal(true); }}
                         className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
@@ -275,78 +275,85 @@ export default function Riscos() {
 
       {/* FORM MODAL */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Ajustar Risco" : "Registrar Novo Risco"}>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Identificação do Risco</label>
-            <input type="text" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" placeholder="Ex: Ruído excessivo, Queda de altura..." value={nome} onChange={(e) => setNome(e.target.value)} required />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[85vh]">
+          {/* ÁREA COM SCROLL INTERNO PARA MOBILE/TELA PEQUENA */}
+          <div className="flex-1 overflow-y-auto pr-2 space-y-5 pt-4 scrollbar-thin scrollbar-thumb-slate-200">
+            
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Categoria</label>
-              <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
-                <option value="fisico">Físico</option>
-                <option value="quimico">Químico</option>
-                <option value="biologico">Biológico</option>
-                <option value="ergonomico">Ergonômico</option>
-                <option value="acidente">Acidente</option>
-              </select>
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Identificação do Risco</label>
+              <input type="text" className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all" placeholder="Ex: Ruído excessivo, Queda de altura..." value={nome} onChange={(e) => setNome(e.target.value)} required />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Setor</label>
-              <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={setorId} onChange={(e) => setSetorId(e.target.value)} required>
-                <option value="">Onde ocorre?</option>
-                {setores.map((s) => <option key={s._id} value={s._id}>{s.nome}</option>)}
-              </select>
-            </div>
-          </div>
 
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <p className="text-[10px] font-black uppercase text-slate-400 mb-3 text-center tracking-widest text-rose-600">Matriz de Criticidade</p>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2 text-center">
-                <label className="text-xs font-bold text-slate-600">Probabilidade: {probabilidade}</label>
-                <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={probabilidade} onChange={(e) => setProbabilidade(Number(e.target.value))} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Categoria</label>
+                <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
+                  <option value="fisico">Físico</option>
+                  <option value="quimico">Químico</option>
+                  <option value="biologico">Biológico</option>
+                  <option value="ergonomico">Ergonômico</option>
+                  <option value="acidente">Acidente</option>
+                </select>
               </div>
-              <div className="space-y-2 text-center">
-                <label className="text-xs font-bold text-slate-600">Severidade: {severidade}</label>
-                <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={severidade} onChange={(e) => setSeveridade(Number(e.target.value))} />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Setor</label>
+                <select className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none" value={setorId} onChange={(e) => setSetorId(e.target.value)} required>
+                  <option value="">Onde ocorre?</option>
+                  {setores.map((s) => <option key={s._id} value={s._id}>{s.nome}</option>)}
+                </select>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Medidas de Controle Atuais</label>
-            <textarea className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all h-20" placeholder="O que já está sendo feito?" value={medidas} onChange={(e) => setMedidas(e.target.value)} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Responsável</label>
-              <input 
-                type="text" 
-                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-sm" 
-                placeholder="Nome do gestor" 
-                value={responsavel} 
-                onChange={(e) => setResponsavel(e.target.value)} 
-              />
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <p className="text-[10px] font-black uppercase text-slate-400 mb-4 text-center tracking-widest text-rose-600">Matriz de Criticidade</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2 text-center">
+                  <label className="text-xs font-bold text-slate-600">Probabilidade: {probabilidade}</label>
+                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={probabilidade} onChange={(e) => setProbabilidade(Number(e.target.value))} />
+                </div>
+                <div className="space-y-2 text-center">
+                  <label className="text-xs font-bold text-slate-600">Severidade: {severidade}</label>
+                  <input type="range" min="1" max="5" className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-600" value={severidade} onChange={(e) => setSeveridade(Number(e.target.value))} />
+                </div>
+              </div>
             </div>
+
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Status Atual</label>
-              <select 
-                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm" 
-                value={status} 
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="ativo">⚠️ ATIVO</option>
-                <option value="controlado">✅ CONTROLADO</option>
-              </select>
+              <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Medidas de Controle Atuais</label>
+              <textarea className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all h-20 resize-none" placeholder="O que já está sendo feito?" value={medidas} onChange={(e) => setMedidas(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Responsável</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 transition-all text-sm" 
+                  placeholder="Nome do gestor" 
+                  value={responsavel} 
+                  onChange={(e) => setResponsavel(e.target.value)} 
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Status Atual</label>
+                <select 
+                  className="w-full bg-slate-50 border border-slate-200 p-3 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm" 
+                  value={status} 
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="ativo">⚠️ ATIVO</option>
+                  <option value="controlado">✅ CONTROLADO</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <button className="w-full bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">
-            {editingId ? "Salvar Alterações" : "Registrar Risco"}
-          </button>
+          {/* BOTÃO FIXO NO RODAPÉ DO MODAL */}
+          <div className="pt-4 mt-2 border-t border-slate-100 bg-white">
+            <button className="w-full bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">
+              {editingId ? "Salvar Alterações" : "Registrar Risco"}
+            </button>
+          </div>
         </form>
       </Modal>
 
