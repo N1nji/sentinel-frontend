@@ -32,7 +32,7 @@ export default function IAModal({ open, onClose, onApply, contextoInicial }: IAM
       const token = localStorage.getItem("token");
       const res = await api.post(
         "/ia/sugerir",
-        { risco: texto },
+        { risco: texto + ". (Responda em no máximo 10 linhas)" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
