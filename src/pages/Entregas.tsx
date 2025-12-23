@@ -3,6 +3,8 @@ import { api } from "../services/api";
 import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
+import IAModal from "../components/IASelectModal";
+import { SparklesIcon } from "@heroicons/react/24/solid";
 import jsPDF from "jspdf";
 import { io } from "socket.io-client";
 
@@ -79,6 +81,9 @@ export default function Entregas() {
   // --- STATES DE NOTIFICAÇÃO ---
   const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({ show: false, msg: "" });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // IA
+  const [openIA, setOpenIA] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -393,8 +398,13 @@ export default function Entregas() {
           </div>
           <div className="flex gap-2">
             <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="w-24 border-gray-300 rounded-xl" required />
-            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className="flex-1 border-gray-300 rounded-xl" />
+            <div className="flex-1 relative">
+            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className="w-full border-gray-300 rounded-xl pr-10" />
+            <button type="button" onClick={() => setOpenIA(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors" title="Consultar Sentinel IA">
+              <SparklesIcon className="h-4 w-4" />
+            </button>
           </div>
+        </div>
           <div ref={canvasContainerRef} className="border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 h-[200px] relative">
             <SignaturePad ref={sigPadRef} canvasProps={{ className: "w-full h-full" }} />
             <button type="button" onClick={() => sigPadRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
@@ -416,6 +426,15 @@ export default function Entregas() {
           </button>
         </div>
       </Modal>
+
+      <IAModal 
+        open={openIA} 
+        onClose={() => setOpenIA(false)} 
+        onApply={(textoGerado: string) => {
+          setObservacao(textoGerado);
+          setOpenIA(false);
+        }} 
+      />
 
       <ConfirmModal
         open={openDelete}
