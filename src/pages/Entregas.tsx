@@ -15,7 +15,8 @@ import {
   InformationCircleIcon,
   ExclamationTriangleIcon,
   CalendarDaysIcon,
-  FunnelIcon
+  FunnelIcon,
+  BellAlertIcon // Ícone para a nova feature
 } from "@heroicons/react/24/outline";
 
 interface IEntrega {
@@ -69,8 +70,12 @@ export default function Entregas() {
 
   // --- STATES DE MELHORIA ---
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
-  const [isAdmin, setIsAdmin] = useState(false); // Agora como state para atualizar a tela
+  const [isAdmin, setIsAdmin] = useState(false); 
   const token = localStorage.getItem("token");
+
+  // --- NOVO ESTADO: NOTIFICAÇÃO ---
+  const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({ show: false, msg: "" });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // --- SOCKET.IO PARA NOTIFICAÇÕES EM TEMPO REAL ---
   const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
@@ -88,8 +93,15 @@ export default function Entregas() {
       setEpis(resEpis.data);
       setColaboradores(resCols.data);
 
-      const low = resEpis.data.find((e: any) => e.estoque <= 5);
-      setAlertLowStock(low ? `${low.nome} (${low.estoque} un)` : null);
+      const itensCriticos = resEpis.data.filter((e: any) => e.estoque <= 5);
+      if (itensCriticos.length > 0) {
+        const msg = itensCriticos.length === 1 
+          ? `${itensCriticos[0].nome} (${itensCriticos[0].estoque} un)`
+          : `${itensCriticos.length} itens em nível crítico!`;
+        setAlertLowStock(msg);
+      } else {
+        setAlertLowStock(null);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -97,14 +109,31 @@ export default function Entregas() {
     }
   }
 
-  useEffect(() => { 
-    // Captura o tipo do usuário do localStorage assim que entra na tela
+  // Efeito para gerenciar o Socket e Notificações
+  useEffect(() => {
+    const socket = io(SOCKET_URL);
+
+    socket.on("notificacao_entrega", (data: any) => {
+      setShowToast({ show: true, msg: data.msg || "Nova entrega registrada no sistema!" });
+      
+      // Toca o som do Pixabay que você pediu
+      if (audioRef.current) {
+        audioRef.current.volume = 0.5;
+        audioRef.current.play().catch(e => console.warn("Clique na página para habilitar o áudio", e));
+      }
+
+      // Esconde o Toast após 5 segundos e atualiza a lista
+      setTimeout(() => setShowToast({ show: false, msg: "" }), 5000);
+      load();
+    });
+
     const userTipo = localStorage.getItem("userTipo");
     setIsAdmin(userTipo === "admin");
     load(); 
+
+    return () => { socket.disconnect(); };
   }, []);
 
-  // --- LÓGICA DE FILTRAGEM ---
   const entregasFiltradas = entregas.filter(en => {
     if (filtroStatus === "ativos") return !en.devolvida;
     if (filtroStatus === "devolvidos") return en.devolvida;
@@ -206,10 +235,9 @@ export default function Entregas() {
         colaboradorId, epiId, quantidade, observacao, assinaturaBase64: signature
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      // Notificação via Socket.io
-        const socket = io(SOCKET_URL);
-        socket.emit("nova_entrega", { msg: "Entrega realizada com sucesso!" });
-        socket.disconnect(); // Fecha a conexão após avisar
+      const socket = io(SOCKET_URL);
+      socket.emit("nova_entrega", { msg: "Entrega realizada com sucesso!" });
+      socket.disconnect();
 
       setOpenModal(false);
       load();
@@ -247,7 +275,23 @@ export default function Entregas() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen relative">
+      {/* AUDIO ELEMENT */}
+      <audio ref={audioRef} src="https://cdn.pixabay.com/audio/2022/03/15/audio_730248443e.mp3" preload="auto" />
+
+      {/* TOAST DE NOTIFICAÇÃO REAL-TIME */}
+      {showToast.show && (
+        <div className="fixed top-5 right-5 z-[100] bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-4 animate-bounce">
+          <div className="bg-emerald-500 p-2 rounded-lg">
+            <BellAlertIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Novo Registro</p>
+            <p className="text-sm font-bold text-gray-100">{showToast.msg}</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
@@ -260,8 +304,11 @@ export default function Entregas() {
 
         <div className="flex items-center gap-3">
           {alertLowStock && (
-            <div className="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl border border-amber-200 text-xs font-bold flex items-center gap-2 animate-pulse">
-              <ExclamationTriangleIcon className="h-4 w-4" /> Estoque Baixo: {alertLowStock}
+            <div 
+              title="Existem itens com estoque abaixo do limite de segurança."
+              className="bg-rose-100 text-rose-700 px-4 py-2 rounded-xl border border-rose-200 text-xs font-black flex items-center gap-2 animate-pulse shadow-sm cursor-help"
+            >
+              <ExclamationTriangleIcon className="h-4 w-4" /> ATENÇÃO: {alertLowStock}
             </div>
           )}
           <button onClick={() => setOpenModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl shadow-lg transition-all font-bold flex items-center gap-2">
@@ -336,7 +383,6 @@ export default function Entregas() {
                         {!en.devolvida && (
                           <button title="Registrar Devolução" onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-all"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
                         )}
-                        {/* LÓGICA DE ADMIN AQUI */}
                         {isAdmin && (
                           <button title="Excluir Registro" onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-all"><TrashIcon className="h-5 w-5"/></button>
                         )}
@@ -363,7 +409,11 @@ export default function Entregas() {
             </select>
             <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="w-full border-gray-300 rounded-xl focus:ring-blue-500">
               <option value="">Selecione EPI</option>
-              {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome} (Estoque: {ep.estoque})</option>)}
+              {epis.map(ep => (
+                <option key={ep._id} value={ep._id} className={ep.estoque <= 5 ? "text-red-600 font-bold" : ""}>
+                  {ep.estoque <= 5 ? "⚠️ " : ""}{ep.nome} (Estoque: {ep.estoque})
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex gap-2">

@@ -128,14 +128,14 @@ export default function DashboardAdvanced() {
 
       // --- NOVA FEATURE: SOM E PULSE NO HANDLER ---
       const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_730248443e.mp3");
-      audio.volume = 0.5;
+      audio.volume = 0.7;
       audio.play().catch(_e => console.warn("Áudio bloqueado pelo navegador. Clique na tela para liberar."));
       
       setNewAlert(true);
       loadDashboard();
       
-      // Remove o alerta visual após 5 segundos
-      setTimeout(() => setNewAlert(false), 5000);
+      // Remove o alerta visual após 8 segundos
+      setTimeout(() => setNewAlert(false), 8000);
       // --------------------------------------------
     };
 
