@@ -111,7 +111,7 @@ export default function Entregas() {
   // --- CONFIGURAÇÃO DO SOCKET ---
   useEffect(() => {
     // Escuta o evento que o Back-end emite
-    socket.on("notificacao_entrega", (data: any) => {
+    socket.on("nova_entrega", (data: any) => {
       console.log("Recebi notificação via Socket:", data);
       setShowToast({ show: true, msg: data.msg || "Nova entrega registrada!" });
       
@@ -130,7 +130,7 @@ export default function Entregas() {
     load(); 
 
     return () => { 
-      socket.off("notificacao_entrega"); // Limpa o listener ao sair da página
+      socket.off("nova_entrega"); // Limpa o listener ao sair da página
     };
   }, []);
 
