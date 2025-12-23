@@ -10,9 +10,6 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   FunnelIcon,
-  MapIcon,
-  UserGroupIcon,
-  ScaleIcon
 } from "@heroicons/react/24/outline";
 
 // Componentes e Serviços
@@ -224,8 +221,8 @@ export default function Relatorios() {
         ))}
       </div>
 
-      {/* RISCOS POR SETOR - COM MELHORIA DE CRITICIDADE */}
-      <Card title={<div className="flex items-center gap-2"><MapIcon className="h-5 w-5 text-indigo-500" /> Mapa de Criticidade por Unidade</div>}>
+      {/* RISCOS POR SETOR */}
+      <Card title="Mapa de Criticidade por Unidade">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
           {riscos.map((r) => {
             const isCritico = r.porClassificacao.alto > 0;
@@ -250,14 +247,14 @@ export default function Relatorios() {
                 <div className="space-y-3">
                    <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 px-1">
                       <span className={isCritico ? "text-rose-600 font-black animate-pulse" : ""}>
-                        {isCritico ? "⚠️ Alto Risco Detectado" : "Nível de Perigo"}
+                        {isCritico ? "Atenção: Alto Risco" : "Nível de Perigo"}
                       </span>
                       <span>{Math.round((r.porClassificacao.alto / r.totalRiscos) * 100) || 0}% crítico</span>
                    </div>
                    <div className="flex h-3 gap-1.5 p-1 bg-white rounded-full border border-slate-100 shadow-inner overflow-hidden">
                       {r.porClassificacao.alto > 0 && (
                         <div 
-                          className="bg-rose-500 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]" 
+                          className="bg-rose-500 rounded-full transition-all duration-500" 
                           style={{ width: `${(r.porClassificacao.alto / r.totalRiscos) * 100}%` }} 
                         />
                       )}
@@ -271,7 +268,7 @@ export default function Relatorios() {
                    </div>
                    {isCritico && (
                      <p className="text-[9px] font-black text-rose-500 uppercase tracking-tight mt-1 flex items-center gap-1">
-                       <ExclamationCircleIcon className="h-3 w-3" /> Ação técnica imediata recomendada
+                       <ExclamationCircleIcon className="h-3 w-3" /> Intervenção imediata necessária
                      </p>
                    )}
                 </div>
@@ -282,7 +279,7 @@ export default function Relatorios() {
       </Card>
 
       {/* COLABORADORES */}
-      <Card title={<div className="flex items-center gap-2"><UserGroupIcon className="h-5 w-5 text-indigo-500" /> Gestão de Efetivo por Setor</div>}>
+      <Card title="Gestão de Efetivo por Setor">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {colabs && Object.entries(colabs).map(([setorId, lista]: any) => (
             <div key={setorId} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:border-indigo-200 transition-all">
