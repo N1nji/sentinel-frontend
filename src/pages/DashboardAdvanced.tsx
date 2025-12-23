@@ -80,6 +80,11 @@ export default function DashboardAdvanced() {
   const [insightsText, setInsightsText] = useState("");
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [forecastLoading, setForecastLoading] = useState(false);
+  
+  // --- NOVA FEATURE: ESTADO DE ALERTA ---
+  const [newAlert, setNewAlert] = useState(false);
+  // --------------------------------------
+
   const socketRef = useRef<Socket | null>(null);
 
   async function loadFilters() {
@@ -115,9 +120,25 @@ export default function DashboardAdvanced() {
   useEffect(() => {
     loadFilters();
     loadDashboard();
+    
     socketRef.current = io(SOCKET_URL);
-    const handler = () => loadDashboard();
+    
+    const handler = () => {
+      // --- NOVA FEATURE: SOM E PULSE NO HANDLER ---
+      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
+      audio.volume = 0.4;
+      audio.play().catch(() => {}); // Ignora se o browser bloquear som sem interação
+      
+      setNewAlert(true);
+      loadDashboard();
+      
+      // Remove o alerta visual após 4 segundos
+      setTimeout(() => setNewAlert(false), 4000);
+      // --------------------------------------------
+    };
+
     socketRef.current.on("nova_entrega", handler);
+    
     return () => {
       socketRef.current?.off("nova_entrega", handler);
       socketRef.current?.disconnect();
@@ -205,8 +226,24 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
   if (!data) return <div className="p-10 text-center text-rose-500 font-black">FALHA NA CONEXÃO COM O SERVIDOR.</div>;
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 relative">
       
+      {/* --- NOVA FEATURE: NOTIFICAÇÃO FLOATING --- */}
+      {newAlert && (
+        <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-indigo-600 text-white px-6 py-4 rounded-[2rem] shadow-2xl shadow-indigo-500/50 flex items-center gap-4 border border-indigo-400">
+            <div className="bg-white/20 p-2 rounded-xl animate-pulse">
+              <Zap size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest leading-none">Sentinel Real-time</p>
+              <p className="text-xs font-bold">Nova entrega registrada!</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ------------------------------------------ */}
+
       {/* PAINEL DE FILTROS */}
       <section className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
         <FiltersPanel filters={filters} setFilters={setFilters} setores={setores} epis={epis} />
