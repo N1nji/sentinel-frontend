@@ -10,6 +10,9 @@ import {
   UsersIcon,
   ShieldCheckIcon,
   FunnelIcon,
+  MapIcon,
+  UserGroupIcon,
+  ScaleIcon
 } from "@heroicons/react/24/outline";
 
 // Componentes e Serviços
@@ -187,7 +190,7 @@ export default function Relatorios() {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Status de Validade</p>
-              <p className="text-sm font-black">{episStatus.vencidos.length > 0 ? `${episStatus.vencidos.length} EPIs COM CA VENCIDOS` : 'TUDO EM CONFORMIDADE'}</p>
+              <p className="text-sm font-black tracking-tight">{episStatus.vencidos.length > 0 ? `${episStatus.vencidos.length} EPIs COM CA VENCIDOS` : 'TUDO EM CONFORMIDADE'}</p>
             </div>
           </div>
           <div className="p-4 rounded-2xl border border-amber-100 bg-amber-50 text-amber-700 flex items-center gap-4">
@@ -196,7 +199,7 @@ export default function Relatorios() {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Alerta de Suprimentos</p>
-              <p className="text-sm font-black">{episStatus.semEstoque.length} ITENS COM ESTOQUE BAIXO</p>
+              <p className="text-sm font-black tracking-tight">{episStatus.semEstoque.length} ITENS COM ESTOQUE BAIXO</p>
             </div>
           </div>
       </div>
@@ -221,41 +224,65 @@ export default function Relatorios() {
         ))}
       </div>
 
-      {/* RISCOS POR SETOR */}
-      <Card title="⚠️ Mapa de Criticidade por Unidade">
+      {/* RISCOS POR SETOR - COM MELHORIA DE CRITICIDADE */}
+      <Card title={<div className="flex items-center gap-2"><MapIcon className="h-5 w-5 text-indigo-500" /> Mapa de Criticidade por Unidade</div>}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-          {riscos.map((r) => (
-            <div key={r.setorId} className="group p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-300">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h4 className="text-lg font-black text-slate-800">{r.setorNome}</h4>
-                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">{r.totalRiscos} Riscos Mapeados</p>
+          {riscos.map((r) => {
+            const isCritico = r.porClassificacao.alto > 0;
+            return (
+              <div key={r.setorId} className="group p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-300">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h4 className="text-lg font-black text-slate-800">{r.setorNome}</h4>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">
+                      {r.totalRiscos} Riscos Mapeados
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Risk Score</span>
+                    <span className={`text-sm font-black px-4 py-1.5 rounded-xl border-2 transition-colors ${
+                      isCritico ? 'border-rose-500 text-rose-600 bg-rose-50' : 'border-emerald-200 text-emerald-600 bg-emerald-50'
+                    }`}>
+                      {calcularScore(r)} / 5
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Risk Score</span>
-                  <span className={`text-sm font-black px-4 py-1.5 rounded-xl border-2 ${calcularScore(r) <= 2 ? 'border-rose-200 text-rose-600 bg-rose-50' : 'border-emerald-200 text-emerald-600 bg-emerald-50'}`}>
-                    {calcularScore(r)} / 5
-                  </span>
+                <div className="space-y-3">
+                   <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 px-1">
+                      <span className={isCritico ? "text-rose-600 font-black animate-pulse" : ""}>
+                        {isCritico ? "⚠️ Alto Risco Detectado" : "Nível de Perigo"}
+                      </span>
+                      <span>{Math.round((r.porClassificacao.alto / r.totalRiscos) * 100) || 0}% crítico</span>
+                   </div>
+                   <div className="flex h-3 gap-1.5 p-1 bg-white rounded-full border border-slate-100 shadow-inner overflow-hidden">
+                      {r.porClassificacao.alto > 0 && (
+                        <div 
+                          className="bg-rose-500 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]" 
+                          style={{ width: `${(r.porClassificacao.alto / r.totalRiscos) * 100}%` }} 
+                        />
+                      )}
+                      {r.porClassificacao.medio > 0 && (
+                        <div 
+                          className="bg-amber-400 rounded-full transition-all duration-500" 
+                          style={{ width: `${(r.porClassificacao.medio / r.totalRiscos) * 100}%` }} 
+                        />
+                      )}
+                      <div className="bg-emerald-400 rounded-full flex-1 transition-all duration-500" />
+                   </div>
+                   {isCritico && (
+                     <p className="text-[9px] font-black text-rose-500 uppercase tracking-tight mt-1 flex items-center gap-1">
+                       <ExclamationCircleIcon className="h-3 w-3" /> Ação técnica imediata recomendada
+                     </p>
+                   )}
                 </div>
               </div>
-              <div className="space-y-3">
-                 <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 px-1">
-                    <span>Nível de Perigo</span>
-                    <span>{Math.round((r.porClassificacao.alto / r.totalRiscos) * 100) || 0}% crítico</span>
-                 </div>
-                 <div className="flex h-3 gap-1.5 p-1 bg-white rounded-full border border-slate-100 shadow-inner">
-                    <div className="bg-rose-500 rounded-full transition-all duration-500" style={{ width: `${(r.porClassificacao.alto / r.totalRiscos) * 100}%` }} />
-                    <div className="bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${(r.porClassificacao.medio / r.totalRiscos) * 100}%` }} />
-                    <div className="bg-emerald-400 rounded-full flex-1 transition-all duration-500" />
-                 </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 
       {/* COLABORADORES */}
-      <Card title="👥 Gestão de Efetivo por Setor">
+      <Card title={<div className="flex items-center gap-2"><UserGroupIcon className="h-5 w-5 text-indigo-500" /> Gestão de Efetivo por Setor</div>}>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {colabs && Object.entries(colabs).map(([setorId, lista]: any) => (
             <div key={setorId} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:border-indigo-200 transition-all">
