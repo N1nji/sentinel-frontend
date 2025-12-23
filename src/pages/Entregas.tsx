@@ -19,6 +19,10 @@ import {
   BellAlertIcon
 } from "@heroicons/react/24/outline";
 
+// Criamos a instância fora para não resetar a cada renderização
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const socket = io(SOCKET_URL, { autoConnect: true });
+
 interface IEntrega {
   _id: string;
   colaboradorId: { _id: string; nome: string; matricula?: string; };
@@ -75,7 +79,6 @@ export default function Entregas() {
   // --- STATES DE NOTIFICAÇÃO ---
   const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({ show: false, msg: "" });
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
   async function load() {
     setLoading(true);
@@ -107,27 +110,28 @@ export default function Entregas() {
 
   // --- CONFIGURAÇÃO DO SOCKET ---
   useEffect(() => {
-    const socket = io(SOCKET_URL);
-
     // Escuta o evento que o Back-end emite
     socket.on("notificacao_entrega", (data: any) => {
-      console.log("Recebi notificação via Socket:", data); // Para debug
+      console.log("Recebi notificação via Socket:", data);
       setShowToast({ show: true, msg: data.msg || "Nova entrega registrada!" });
       
-      // Toca o som (usando um link alternativo para evitar o erro 403)
+      // Toca o som (Link direto sem erro 403)
       if (audioRef.current) {
-        audioRef.current.play().catch(() => console.log("Áudio aguardando interação do usuário."));
+        audioRef.current.currentTime = 0; // Reinicia se já estiver tocando
+        audioRef.current.play().catch(e => console.log("Áudio bloqueado pelo navegador até o primeiro clique."));
       }
 
       setTimeout(() => setShowToast({ show: false, msg: "" }), 5000);
-      load(); // Recarrega a lista automaticamente
+      load(); // Recarrega a lista
     });
 
     const userTipo = localStorage.getItem("userTipo");
     setIsAdmin(userTipo === "admin");
     load(); 
 
-    return () => { socket.disconnect(); };
+    return () => { 
+      socket.off("notificacao_entrega"); // Limpa o listener ao sair da página
+    };
   }, []);
 
   const entregasFiltradas = entregas.filter(en => {
@@ -219,11 +223,14 @@ export default function Entregas() {
         colaboradorId, epiId, quantidade, observacao, assinaturaBase64: signature
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      const socket = io(SOCKET_URL);
+      // Emitimos usando a instância global para não precisar reconectar
       socket.emit("nova_entrega", { msg: "Entrega realizada com sucesso!" });
-      socket.disconnect();
 
       setOpenModal(false);
+      setColaboradorId("");
+      setEpiId("");
+      setQuantidade(1);
+      setObservacao("");
       load();
     } catch (err: any) {
       alert(err?.response?.data?.error || "Erro");
@@ -258,7 +265,7 @@ export default function Entregas() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen relative">
-      {/* CORREÇÃO DO ÁUDIO: Link estável para evitar erro 403 */}
+      {/* Link de som direto do Mixkit que não dá 403 */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
 
       {/* TOAST DE NOTIFICAÇÃO */}
@@ -371,7 +378,7 @@ export default function Entregas() {
         </div>
       </div>
 
-      {/* MODAIS (MANTIDOS IGUAIS) */}
+      {/* MODAIS */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
