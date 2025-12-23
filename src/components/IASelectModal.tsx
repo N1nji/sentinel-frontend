@@ -31,11 +31,12 @@ export default function IAModal({ open, onClose, onApply, contextoInicial }: IAM
     try {
       const token = localStorage.getItem("token");
       const res = await api.post(
-        "/sugerir",
-        { descricaoRisco: texto },
+        "/ia/sugerir",
+        { risco: texto },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setResposta(res.data.recomendacao);
+
+      setResposta(res.data.resposta);
     } catch (err) {
       setResposta("Houve um erro ao processar sua solicitação com a IA. Verifique sua conexão.");
     } finally {
