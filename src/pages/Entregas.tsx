@@ -401,7 +401,7 @@ export default function Entregas() {
             <div className="flex-1 relative">
             <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className="w-full border-gray-300 rounded-xl pr-10" />
             <button type="button" onClick={() => setOpenIA(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors" title="Consultar Sentinel IA">
-              <SparklesIcon className="h-4 w-4" />
+              <SparklesIcon className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -429,7 +429,12 @@ export default function Entregas() {
 
       <IAModal 
         open={openIA} 
-        onClose={() => setOpenIA(false)} 
+        onClose={() => setOpenIA(false)}
+        contextoInicial={
+          epiId
+          ? `Sugira uma observação técnica para a entrega de: ${epis.find(e => e._id === epiId)?.nome}`
+          : "Descreva o cenário de uso para este EPI..."
+        }
         onApply={(textoGerado: string) => {
           setObservacao(textoGerado);
           setOpenIA(false);
