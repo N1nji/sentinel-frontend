@@ -127,7 +127,7 @@ export default function DashboardAdvanced() {
       console.log("📡 EVENTO RECEBIDO:", payload);
 
       // --- NOVA FEATURE: SOM E PULSE NO HANDLER ---
-      const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_730248443e.mp3");
+      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
       audio.volume = 0.7;
       audio.play().catch(_e => console.warn("Áudio bloqueado pelo navegador. Clique na tela para liberar."));
       
