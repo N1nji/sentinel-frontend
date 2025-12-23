@@ -4,6 +4,7 @@ import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import jsPDF from "jspdf";
+import { io } from "socket.io-client";
 
 import {
   TrashIcon,
@@ -70,6 +71,9 @@ export default function Entregas() {
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
   const [isAdmin, setIsAdmin] = useState(false); // Agora como state para atualizar a tela
   const token = localStorage.getItem("token");
+
+  // --- SOCKET.IO PARA NOTIFICAÇÕES EM TEMPO REAL ---
+  const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
   async function load() {
     setLoading(true);
@@ -201,6 +205,12 @@ export default function Entregas() {
       await api.post("/entregas", {
         colaboradorId, epiId, quantidade, observacao, assinaturaBase64: signature
       }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      // Notificação via Socket.io
+        const socket = io(SOCKET_URL);
+        socket.emit("nova_entrega", { msg: "Entrega realizada com sucesso!" });
+        socket.disconnect(); // Fecha a conexão após avisar
+
       setOpenModal(false);
       load();
     } catch (err: any) {

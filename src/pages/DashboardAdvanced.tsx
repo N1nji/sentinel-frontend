@@ -123,17 +123,19 @@ export default function DashboardAdvanced() {
     
     socketRef.current = io(SOCKET_URL);
     
-    const handler = () => {
+    const handler = (payload: any) => {
+      console.log("📡 EVENTO RECEBIDO:", payload);
+
       // --- NOVA FEATURE: SOM E PULSE NO HANDLER ---
-      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
-      audio.volume = 0.4;
-      audio.play().catch(() => {}); // Ignora se o browser bloquear som sem interação
+      const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_730248443e.mp3");
+      audio.volume = 0.5;
+      audio.play().catch(_e => console.warn("Áudio bloqueado pelo navegador. Clique na tela para liberar."));
       
       setNewAlert(true);
       loadDashboard();
       
-      // Remove o alerta visual após 4 segundos
-      setTimeout(() => setNewAlert(false), 4000);
+      // Remove o alerta visual após 5 segundos
+      setTimeout(() => setNewAlert(false), 5000);
       // --------------------------------------------
     };
 
@@ -385,7 +387,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
                 </div>
               ) : (
                 data.estoqueCritico.map((epi) => (
-                  <div key={epi._id} className="p-4 bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center justify-between">
+                  <div key={epi._id} className="p-4 bg-rose-300 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-rose-500 rounded-lg text-white shadow-lg">
                         <AlertTriangle size={16} />
