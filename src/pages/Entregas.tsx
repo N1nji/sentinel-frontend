@@ -118,7 +118,7 @@ export default function Entregas() {
       // Toca o som (Link direto sem erro 403)
       if (audioRef.current) {
         audioRef.current.currentTime = 0; // Reinicia se já estiver tocando
-        audioRef.current.play().catch(e => console.log("Áudio bloqueado pelo navegador até o primeiro clique."));
+        audioRef.current.play().catch(_e => console.log("Áudio bloqueado pelo navegador até o primeiro clique."));
       }
 
       setTimeout(() => setShowToast({ show: false, msg: "" }), 5000);
