@@ -50,7 +50,7 @@ export default function Relatorios() {
       head: [['Indicador', 'Quantidade']],
       body: [
         ['Setores Mapeados', riscos.length],
-        ['Total de Riscos Identificados', riscos.reduce((s, r) => s + r.totalRiscos, 0)],
+        ['Total de Riscos Identificados', riscos.reduce((s, r) => s + (r.totalRiscos || 0), 0)],
         ['EPIs com CA Vencidos', episStatus.vencidos.length],
         ['EPIs em Alerta de Estoque', episStatus.semEstoque.length],
       ],
@@ -62,7 +62,7 @@ export default function Relatorios() {
     const riscosBody = riscos.map(r => [
       r.setorNome,
       r.totalRiscos,
-      `Alto: ${r.porClassificacao.alto} | Médio: ${r.porClassificacao.medio} | Baixo: ${r.porClassificacao.baixo}`
+      `Alto: ${r.porClassificacao?.alto || 0} | Médio: ${r.porClassificacao?.medio || 0} | Baixo: ${r.porClassificacao?.baixo || 0}`
     ]);
 
     autoTable(doc, {
@@ -154,7 +154,7 @@ export default function Relatorios() {
         </button>
       </div>
 
-      {/* FILTROS (ESTILO PREMIUM) */}
+      {/* FILTROS */}
       <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40">
         <div className="flex items-center gap-2 mb-6">
           <FunnelIcon className="h-4 w-4 text-slate-400" />
@@ -179,7 +179,7 @@ export default function Relatorios() {
         </div>
       </div>
 
-      {/* STATUS DE ATENÇÃO (ALERTAS RÁPIDOS) */}
+      {/* ALERTAS RÁPIDOS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className={`p-4 rounded-2xl border flex items-center gap-4 transition-all ${episStatus.vencidos.length > 0 ? 'bg-rose-50 border-rose-100 text-rose-700 shadow-sm shadow-rose-100' : 'bg-emerald-50 border-emerald-100 text-emerald-700'}`}>
             <div className={`p-3 rounded-xl ${episStatus.vencidos.length > 0 ? 'bg-rose-100' : 'bg-emerald-100'}`}>
@@ -201,11 +201,11 @@ export default function Relatorios() {
           </div>
       </div>
 
-      {/* DASHBOARD WIDGETS */}
+      {/* WIDGETS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Setores Ativos", val: riscos.length, icon: ChartBarIcon, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Total Riscos", val: riscos.reduce((s, r) => s + r.totalRiscos, 0), icon: ExclamationCircleIcon, color: "text-orange-600", bg: "bg-orange-50" },
+          { label: "Total Riscos", val: riscos.reduce((s, r) => s + (r.totalRiscos || 0), 0), icon: ExclamationCircleIcon, color: "text-orange-600", bg: "bg-orange-50" },
           { label: "Alertas CA", val: episStatus.vencidos.length, icon: CalendarDaysIcon, color: "text-rose-600", bg: "bg-rose-50" },
           { label: "Acervo EPI", val: episStatus.total, icon: ShieldCheckIcon, color: "text-indigo-600", bg: "bg-indigo-50" },
         ].map((item, i) => (
@@ -221,56 +221,88 @@ export default function Relatorios() {
         ))}
       </div>
 
-      {/* RISCOS POR SETOR */}
+      {/* MAPA DE RISCO - CORRIGIDO E OBJETIVO */}
       <Card title="Mapa de Criticidade por Unidade">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
           {riscos.map((r) => {
-            const isCritico = r.porClassificacao.alto > 0;
+            const total = r.totalRiscos || 0;
+            const altos = r.porClassificacao?.alto || 0;
+            const medios = r.porClassificacao?.medio || 0;
+            const baixos = r.porClassificacao?.baixo || 0;
+
+            // Cálculos de porcentagem seguros
+            const altoPct = total > 0 ? (altos / total) * 100 : 0;
+            const medioPct = total > 0 ? (medios / total) * 100 : 0;
+            const baixoPct = total > 0 ? (baixos / total) * 100 : 0;
+            
+            const isCritico = altos > 0;
+
             return (
               <div key={r.setorId} className="group p-6 rounded-[2rem] border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-300">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h4 className="text-lg font-black text-slate-800">{r.setorNome}</h4>
                     <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">
-                      {r.totalRiscos} Riscos Mapeados
+                      {total} Riscos Identificados
                     </p>
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Risk Score</span>
-                    <span className={`text-sm font-black px-4 py-1.5 rounded-xl border-2 transition-colors ${
+                    <span className={`text-sm font-black px-4 py-1.5 rounded-xl border-2 ${
                       isCritico ? 'border-rose-500 text-rose-600 bg-rose-50' : 'border-emerald-200 text-emerald-600 bg-emerald-50'
                     }`}>
                       {calcularScore(r)} / 5
                     </span>
                   </div>
                 </div>
+
                 <div className="space-y-3">
-                   <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 px-1">
-                      <span className={isCritico ? "text-rose-600 font-black animate-pulse" : ""}>
-                        {isCritico ? "Atenção: Alto Risco" : "Nível de Perigo"}
+                   <div className="flex justify-between text-[10px] font-black uppercase px-1">
+                      <span className={isCritico ? "text-rose-600 font-black animate-pulse" : "text-slate-400"}>
+                        {isCritico ? "⚠️ Crítico: Requer Atenção" : "Operação Segura"}
                       </span>
-                      <span>{Math.round((r.porClassificacao.alto / r.totalRiscos) * 100) || 0}% crítico</span>
+                      <span className="text-slate-500">{total > 0 ? `${Math.round(altoPct)}% alto risco` : '0% riscos'}</span>
                    </div>
-                   <div className="flex h-3 gap-1.5 p-1 bg-white rounded-full border border-slate-100 shadow-inner overflow-hidden">
-                      {r.porClassificacao.alto > 0 && (
+                   
+                   {/* BARRA DE PROGRESSO SEGMENTADA */}
+                   <div className="flex h-3 w-full bg-slate-200 rounded-full border border-slate-100 shadow-inner overflow-hidden">
+                      {altos > 0 && (
                         <div 
-                          className="bg-rose-500 rounded-full transition-all duration-500" 
-                          style={{ width: `${(r.porClassificacao.alto / r.totalRiscos) * 100}%` }} 
+                          className="bg-rose-500 h-full transition-all duration-700 ease-out" 
+                          style={{ width: `${altoPct}%` }} 
                         />
                       )}
-                      {r.porClassificacao.medio > 0 && (
+                      {medios > 0 && (
                         <div 
-                          className="bg-amber-400 rounded-full transition-all duration-500" 
-                          style={{ width: `${(r.porClassificacao.medio / r.totalRiscos) * 100}%` }} 
+                          className="bg-amber-400 h-full transition-all duration-700 ease-out" 
+                          style={{ width: `${medioPct}%` }} 
                         />
                       )}
-                      <div className="bg-emerald-400 rounded-full flex-1 transition-all duration-500" />
+                      {baixos > 0 && (
+                        <div 
+                          className="bg-emerald-400 h-full transition-all duration-700 ease-out" 
+                          style={{ width: `${baixoPct}%` }} 
+                        />
+                      )}
+                      {total === 0 && (
+                        <div className="bg-emerald-400 w-full h-full opacity-30" />
+                      )}
                    </div>
-                   {isCritico && (
-                     <p className="text-[9px] font-black text-rose-500 uppercase tracking-tight mt-1 flex items-center gap-1">
-                       <ExclamationCircleIcon className="h-3 w-3" /> Intervenção imediata necessária
-                     </p>
-                   )}
+
+                   <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div className="text-center p-2 rounded-xl bg-white border border-slate-100">
+                        <p className="text-[8px] font-black text-rose-500 uppercase">Altos</p>
+                        <p className="text-xs font-black text-slate-700">{altos}</p>
+                      </div>
+                      <div className="text-center p-2 rounded-xl bg-white border border-slate-100">
+                        <p className="text-[8px] font-black text-amber-500 uppercase">Médios</p>
+                        <p className="text-xs font-black text-slate-700">{medios}</p>
+                      </div>
+                      <div className="text-center p-2 rounded-xl bg-white border border-slate-100">
+                        <p className="text-[8px] font-black text-emerald-500 uppercase">Baixos</p>
+                        <p className="text-xs font-black text-slate-700">{baixos}</p>
+                      </div>
+                   </div>
                 </div>
               </div>
             );
@@ -278,7 +310,7 @@ export default function Relatorios() {
         </div>
       </Card>
 
-      {/* COLABORADORES */}
+      {/* GESTÃO DE EFETIVO */}
       <Card title="Gestão de Efetivo por Setor">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {colabs && Object.entries(colabs).map(([setorId, lista]: any) => (
