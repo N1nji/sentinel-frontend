@@ -1,42 +1,19 @@
-import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Bell, Globe, Save } from "lucide-react";
+import { useState } from "react";
+import { Settings as SettingsIcon, Bell, Globe, Save, Sun } from "lucide-react";
 
 export default function Settings() {
-  // Estado para o Dark Mode (pegando o que salvamos no localStorage)
-  const [darkMode, setDarkMode] = useState(() => {
-    const salvo = localStorage.getItem("theme");
-    // Se não tiver nada salvo, o padrão agora é FALSE (light)
-    return salvo === "dark";    
-  });
-
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
     estoqueBaixo: true
   });
 
-  // Estado para o feedback visual do botão salvar
   const [salvando, setSalvando] = useState(false);
 
-  // Efeito para aplicar ou remover o tema do HTML
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
-  // Função para salvar as alterações
   const handleSave = () => {
     setSalvando(true);
-    
-    // Salva as notificações no localStorage
     localStorage.setItem("notifications", JSON.stringify(notifications));
     
-    // Simula um tempo de resposta e avisa que salvou
     setTimeout(() => {
       setSalvando(false);
       alert("Configurações salvas com sucesso!");
@@ -44,37 +21,32 @@ export default function Settings() {
   };
 
   return (
-    <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
+    <main className="flex-1 p-6 bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
           <SettingsIcon size={28} className="text-indigo-600" /> Configurações
         </h1>
 
         <div className="space-y-6">
-          {/* SEÇÃO: APARÊNCIA */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-slate-800">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <Moon size={20} className="text-indigo-500" /> Aparência
+          {/* SEÇÃO: APARÊNCIA (APENAS VISUAL AGORA) */}
+          <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Sun size={20} className="text-orange-500" /> Aparência
             </h2>
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
               <div>
-                <p className="font-bold text-gray-700 dark:text-slate-300">Modo Escuro</p>
-                <p className="text-sm text-gray-500 dark:text-slate-500">Reduz o cansaço visual em ambientes escuros.</p>
+                <p className="font-bold text-gray-700">Modo de Exibição</p>
+                <p className="text-sm text-gray-500">O sistema está operando no modo claro padrão.</p>
               </div>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
-              >
-                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${darkMode ? 'translate-x-6' : 'translate-x-0'} flex items-center justify-center`}>
-                  {darkMode ? <Moon size={12} className="text-indigo-600" /> : <Sun size={12} className="text-orange-500" />}
-                </div>
-              </button>
+              <div className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600">
+                Padrão do Sistema
+              </div>
             </div>
           </section>
 
           {/* SEÇÃO: NOTIFICAÇÕES */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-slate-800">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+          <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Bell size={20} className="text-indigo-500" /> Notificações do Sentinel
             </h2>
             <div className="space-y-4">
@@ -82,31 +54,31 @@ export default function Settings() {
                 { key: 'email', label: 'Alertas por E-mail', desc: 'Receba relatórios semanais e alertas críticos.' },
                 { key: 'estoqueBaixo', label: 'Estoque Baixo', desc: 'Avisar quando um EPI atingir o nível mínimo.' },
               ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-4 last:border-0 last:pb-0">
+                <div key={item.key} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                   <div>
-                    <p className="font-bold text-gray-700 dark:text-slate-300">{item.label}</p>
-                    <p className="text-sm text-gray-500 dark:text-slate-500">{item.desc}</p>
+                    <p className="font-bold text-gray-700">{item.label}</p>
+                    <p className="text-sm text-gray-500">{item.desc}</p>
                   </div>
                   <input 
                     type="checkbox" 
                     checked={(notifications as any)[item.key]}
                     onChange={() => setNotifications({...notifications, [item.key]: !(notifications as any)[item.key]})}
-                    className="w-5 h-5 accent-indigo-600"
+                    className="w-5 h-5 accent-indigo-600 cursor-pointer"
                   />
                 </div>
               ))}
             </div>
           </section>
 
-          {/* SEÇÃO: "EM BREVE" */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-100 dark:border-slate-800 opacity-60">
+          {/* SEÇÃO: IDIOMA */}
+          <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200 opacity-60">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Globe size={20} className="text-indigo-500" /> Idioma e Região
               </h2>
-              <span className="text-[10px] font-black bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full text-gray-500 uppercase">Em Breve</span>
+              <span className="text-[10px] font-black bg-gray-100 px-2 py-1 rounded-full text-gray-500 uppercase">Em Breve</span>
             </div>
-            <div className="h-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-300 dark:border-slate-700" />
+            <div className="h-12 bg-gray-50 rounded-xl border border-dashed border-gray-300" />
           </section>
         </div>
 
