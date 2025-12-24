@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { LogOut, User, ChevronDown, Settings, Bell, CheckCircle2, AlertTriangle, Package } from "lucide-react";
 import { io } from "socket.io-client";
+import { NavLink } from "react-router-dom";
 
 interface TokenPayload {
   id: string;
@@ -201,10 +202,10 @@ export default function Header() {
           {isOpen && (
             <div className="absolute right-0 mt-3 w-52 sm:w-56 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-150 origin-top-right">
               <div className="p-1.5">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
+                <NavLink to="/profile" className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
                   <User size={18} className="text-gray-400 group-hover:text-blue-600" />
                   <span className="font-medium">Meu Perfil</span>
-                </button>
+                </NavLink>
                 {/* SETTINGS VOLTOU AQUI! */}
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
                   <Settings size={18} className="text-gray-400 group-hover:text-blue-600" />

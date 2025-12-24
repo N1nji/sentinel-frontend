@@ -13,6 +13,7 @@ import Entregas from "./pages/Entregas";
 import PrivateRoute from "./components/PrivateRoute";
 import ChatPage from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
+import Profile from "./pages/Profile";
 
 export default function App() {
   
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="entregas" element={<Entregas />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="relatorios" element={<Relatorios />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* fallback */}
