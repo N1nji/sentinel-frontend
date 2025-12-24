@@ -6,6 +6,7 @@ import {
   deletarChat,
   renomearChat,
 } from "../services/chatService";
+import { useTheme } from "../context/ThemeContext"; // 🔹 Melhoria 1: Import do Tema
 import {
   EllipsisVerticalIcon,
   TrashIcon,
@@ -23,6 +24,7 @@ export default function ChatSidebar({
   onSelect: (id: string) => void;
   activeId?: string | null;
 }) {
+  const { darkMode } = useTheme(); // 🔹 Melhoria 1: Consumindo o modo escuro
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -86,13 +88,20 @@ export default function ChatSidebar({
 
   return (
     <>
-      {/* Ajustado: w-full no mobile e md:w-80 para desktop */}
-      <aside className="w-full md:w-80 bg-slate-950 text-white p-4 flex flex-col gap-4 border-r border-slate-800 h-full transition-all">
-        {/* HEADER */}
-        <div className="flex items-center justify-between mb-2">
+      {/* Ajustado: Cores dinâmicas baseadas no darkMode */}
+      <aside className={`w-full md:w-80 p-4 flex flex-col gap-4 border-r h-full transition-all duration-300 ${
+        darkMode 
+          ? "bg-slate-950 text-white border-slate-800" 
+          : "bg-gray-50 text-slate-900 border-gray-200"
+      }`}>
+        
+        {/* HEADER - Melhoria 2: pt-12 no mobile resolve o conflito com o botão X */}
+        <div className="flex items-center justify-between mb-2 pt-12 md:pt-0">
           <div className="flex items-center gap-2">
             <ChatBubbleLeftRightIcon className="h-5 w-5 text-indigo-500" />
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Conversas</h2>
+            <h2 className={`text-sm font-black uppercase tracking-widest ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+              Conversas
+            </h2>
           </div>
           <button
             onClick={handleNovo}
@@ -104,7 +113,7 @@ export default function ChatSidebar({
         </div>
 
         {/* LISTA */}
-        <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className={`flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin ${darkMode ? "scrollbar-thumb-slate-800" : "scrollbar-thumb-gray-300"}`}>
           {loading && (
             <div className="flex items-center gap-2 text-slate-500 animate-pulse p-3">
               <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
@@ -125,8 +134,10 @@ export default function ChatSidebar({
                 group relative p-3.5 md:p-3 rounded-2xl flex items-center gap-3 cursor-pointer transition-all duration-200
                 ${
                   activeId === c._id
-                    ? "bg-indigo-600 shadow-xl shadow-indigo-900/40"
-                    : "hover:bg-slate-900 bg-slate-900/30 border border-transparent hover:border-slate-700"
+                    ? "bg-indigo-600 shadow-xl shadow-indigo-900/40 text-white"
+                    : darkMode
+                      ? "hover:bg-slate-900 bg-slate-900/30 border border-transparent hover:border-slate-700 text-slate-200"
+                      : "hover:bg-white bg-white border border-transparent hover:border-gray-200 text-slate-700 shadow-sm"
                 }
               `}
             >
@@ -135,7 +146,7 @@ export default function ChatSidebar({
                 className="flex-1 text-left overflow-hidden outline-none"
                 onClick={() => onSelect(c._id)}
               >
-                <div className={`font-bold truncate text-sm ${activeId === c._id ? "text-white" : "text-slate-200"}`}>
+                <div className="font-bold truncate text-sm">
                   {c.titulo}
                 </div>
                 <div className={`text-[10px] mt-0.5 font-medium ${activeId === c._id ? "text-indigo-200" : "text-slate-500"}`}>
@@ -143,7 +154,7 @@ export default function ChatSidebar({
                 </div>
               </button>
 
-              {/* MENU (...) - Opacidade ajustada para mobile (sempre visível em touch) */}
+              {/* MENU (...) */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -152,21 +163,27 @@ export default function ChatSidebar({
                 className={`p-2 rounded-lg transition-all ${
                   activeId === c._id 
                   ? "hover:bg-indigo-500 text-indigo-200" 
-                  : "opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-slate-800 text-slate-400"
+                  : darkMode
+                    ? "opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-slate-800 text-slate-400"
+                    : "opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:bg-gray-100 text-gray-400"
                 }`}
               >
                 <EllipsisVerticalIcon className="h-5 w-5" />
               </button>
 
-              {/* DROPDOWN - Ajustado para não cortar no topo/fundo */}
+              {/* DROPDOWN */}
               {menuOpenId === c._id && (
                 <div
                   ref={menuRef}
-                  className="absolute right-2 top-12 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-[110] w-44 overflow-hidden backdrop-blur-xl animate-scaleUp"
+                  className={`absolute right-2 top-12 border rounded-xl shadow-2xl z-[110] w-44 overflow-hidden backdrop-blur-xl animate-scaleUp ${
+                    darkMode ? "bg-slate-900 border-slate-700" : "bg-white border-gray-200"
+                  }`}
                 >
                   <button
                     onClick={(e) => { e.stopPropagation(); openRenameModal(c); }}
-                    className="flex items-center gap-3 px-4 py-4 md:py-3 text-xs font-bold hover:bg-slate-800 w-full text-left transition-colors text-slate-300 hover:text-white"
+                    className={`flex items-center gap-3 px-4 py-4 md:py-3 text-xs font-bold w-full text-left transition-colors ${
+                      darkMode ? "hover:bg-slate-800 text-slate-300 hover:text-white" : "hover:bg-gray-50 text-gray-600 hover:text-indigo-600"
+                    }`}
                   >
                     <PencilSquareIcon className="h-4 w-4 text-indigo-400" />
                     RENOMEAR
@@ -174,7 +191,9 @@ export default function ChatSidebar({
 
                   <button
                     onClick={(e) => { e.stopPropagation(); openDeleteModal(c); }}
-                    className="flex items-center gap-3 px-4 py-4 md:py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 w-full text-left transition-colors border-t border-slate-800"
+                    className={`flex items-center gap-3 px-4 py-4 md:py-3 text-xs font-bold text-red-400 hover:bg-red-500/10 w-full text-left transition-colors border-t ${
+                      darkMode ? "border-slate-800" : "border-gray-100"
+                    }`}
                   >
                     <TrashIcon className="h-4 w-4" />
                     EXCLUIR
@@ -186,7 +205,9 @@ export default function ChatSidebar({
         </div>
         
         {/* FOOTER DISCRETO */}
-        <div className="pt-4 border-t border-slate-800 text-[10px] text-slate-600 font-bold uppercase tracking-widest text-center shrink-0">
+        <div className={`pt-4 border-t text-[10px] font-bold uppercase tracking-widest text-center shrink-0 ${
+          darkMode ? "border-slate-800 text-slate-600" : "border-gray-200 text-gray-400"
+        }`}>
           Sentinel AI History
         </div>
       </aside>
@@ -215,7 +236,7 @@ export default function ChatSidebar({
       <style>{`
         .scrollbar-thin::-webkit-scrollbar { width: 4px; }
         .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: ${darkMode ? "#1e293b" : "#cbd5e1"}; border-radius: 10px; }
         @keyframes scaleUp {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
