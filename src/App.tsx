@@ -15,23 +15,11 @@ import ChatPage from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import { ThemeProvider } from "./context/ThemeContext";
 
 export default function App() {
-  
-// EFEITO CORRIGIDO: Só lê o localStorage ao carregar o app
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    
-    // Se estiver explicitamente como 'dark', coloca a classe. 
-    // Se não tiver nada ou for 'light', remove a classe (garante o modo claro)
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []); // [] vazio significa que roda só 1 vez quando o site abre
-
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         {/* Rota pública */}
@@ -66,5 +54,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
+  </ThemeProvider>
   );
 }

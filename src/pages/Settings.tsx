@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Bell } from "lucide-react";
+import { useState } from "react";
+import { Settings as SettingsIcon, Moon, Sun, Bell, Globe } from "lucide-react";
+import { useTheme } from "../context/ThemeContext"; // 🔹 Importe o hook do seu contexto
 
 export default function Settings() {
-  // 🔹 Inicia baseado no que REALMENTE está aplicado no documento ou no localStorage
-  const [darkMode, setDarkMode] = useState(() => {
-    return document.documentElement.classList.contains("dark") || localStorage.getItem("theme") === "dark";
-  });
+  // 🔹 AGORA CONSUMIMOS O TEMA GLOBALMENTE
+  const { darkMode, toggleTheme } = useTheme();
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -15,33 +14,18 @@ export default function Settings() {
 
   const [salvando, setSalvando] = useState(false);
 
-  // 🔹 Sincroniza o tema sempre que o estado mudar
-  useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
-  const toggleTheme = () => {
-    setDarkMode(prev => !prev);
-  };
-
+  // 🔹 Salvar apenas as notificações (o tema já salva sozinho no contexto)
   const handleSave = () => {
     setSalvando(true);
     localStorage.setItem("notifications", JSON.stringify(notifications));
+    
     setTimeout(() => {
       setSalvando(false);
-      alert("Configurações salvas!");
+      alert("Configurações de notificações salvas!");
     }, 800);
   };
 
   return (
-    // Removido o userInteracted para permitir que a tela se auto-corrija ao montar
     <div className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
@@ -52,8 +36,8 @@ export default function Settings() {
         </header>
 
         <div className="space-y-6">
-          {/* APARÊNCIA */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
+          {/* APARÊNCIA (GLOBALIZADA) */}
+          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
@@ -73,9 +57,10 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Toggle que agora dispara a função global */}
               <button
                 onClick={toggleTheme}
-                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 ${
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
                   darkMode ? "bg-indigo-600" : "bg-gray-300"
                 }`}
               >
@@ -88,8 +73,8 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* O restante do seu código de notificações permanece igual... */}
-          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
+          {/* NOTIFICAÇÕES */}
+          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800 transition-colors">
             <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
               <Bell size={20} className="text-indigo-500" />
               Notificações
@@ -97,7 +82,7 @@ export default function Settings() {
             <div className="space-y-4">
                {Object.entries(notifications).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between pb-2 border-b border-gray-50 dark:border-slate-800 last:border-0">
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">
                     {key === "estoqueBaixo" ? "Alertas de Estoque" : key === "email" ? "Notificações por E-mail" : "Notificações Push"}
                   </span>
                   <input
@@ -108,6 +93,22 @@ export default function Settings() {
                   />
                 </div>
               ))}
+            </div>
+          </section>
+
+          {/* IDIOMA */}
+          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800 opacity-60 transition-colors">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
+                <Globe size={20} className="text-indigo-500" />
+                Idioma e Região
+              </h2>
+              <span className="text-[10px] font-black bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full text-gray-500 uppercase tracking-wider">
+                Em Breve
+              </span>
+            </div>
+            <div className="h-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-300 dark:border-slate-700 flex items-center justify-center">
+              <span className="text-xs text-gray-400">Tradução automática em desenvolvimento</span>
             </div>
           </section>
 
