@@ -5,15 +5,31 @@ export default function Settings() {
   // Estado para o Dark Mode (pegando o que salvamos no localStorage)
   const [darkMode, setDarkMode] = useState(() => {
     const salvo = localStorage.getItem("theme");
-  // Se não tiver nada salvo, o padrão agora é FALSE (light)
+    // Se não tiver nada salvo, o padrão agora é FALSE (light)
     return salvo === "dark";    
- });
+  });
 
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
     estoqueBaixo: true
   });
+
+  // --- MELHORIA: Estado para o botão salvar ---
+  const [salvando, setSalvando] = useState(false);
+
+  // --- MELHORIA: Função para salvar ---
+  const handleSave = () => {
+    setSalvando(true);
+    // Salva as notificações no localStorage
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+    
+    // Simula um tempo de resposta e avisa que salvou
+    setTimeout(() => {
+      setSalvando(false);
+      alert("Configurações salvas com sucesso!");
+    }, 800);
+  };
 
   // Efeito para aplicar o tema no documento
   useEffect(() => {
@@ -93,10 +109,23 @@ export default function Settings() {
           </section>
         </div>
 
-        {/* BOTÃO SALVAR */}
+        {/* BOTÃO SALVAR (MELHORADO COM FUNÇÃO E LOADING) */}
         <div className="mt-8 flex justify-end">
-          <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95">
-            <Save size={20} /> Salvar Alterações
+          <button 
+            onClick={handleSave}
+            disabled={salvando}
+            className={`flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg transition-all active:scale-95 ${salvando ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {salvando ? (
+              <>
+                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Save size={20} /> Salvar Alterações
+              </>
+            )}
           </button>
         </div>
       </div>
