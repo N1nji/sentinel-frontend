@@ -15,12 +15,24 @@ export default function Settings() {
     estoqueBaixo: true
   });
 
-  // --- MELHORIA: Estado para o botão salvar ---
+  // Estado para o feedback visual do botão salvar
   const [salvando, setSalvando] = useState(false);
 
-  // --- MELHORIA: Função para salvar ---
+  // Efeito para aplicar ou remover o tema do HTML
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  // Função para salvar as alterações
   const handleSave = () => {
     setSalvando(true);
+    
     // Salva as notificações no localStorage
     localStorage.setItem("notifications", JSON.stringify(notifications));
     
@@ -31,19 +43,8 @@ export default function Settings() {
     }, 800);
   };
 
-  // Efeito para aplicar o tema no documento
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);       
-
   return (
-    <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
+    <main className="flex-1 p-6 bg-white dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
           <SettingsIcon size={28} className="text-indigo-600" /> Configurações
@@ -109,7 +110,7 @@ export default function Settings() {
           </section>
         </div>
 
-        {/* BOTÃO SALVAR (MELHORADO COM FUNÇÃO E LOADING) */}
+        {/* BOTÃO SALVAR */}
         <div className="mt-8 flex justify-end">
           <button 
             onClick={handleSave}
