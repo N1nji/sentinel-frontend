@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Bell } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Bell, Globe, Save } from "lucide-react";
 
 export default function Settings() {
-  // Estado inicial: Sempre tenta pegar o salvo, se não houver, assume FALSE (Light)
+  // 1. Lógica de inicialização ultra segura
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
+    const salvo = localStorage.getItem("theme");
+    return salvo === "dark"; // Se for vazio ou 'light', retorna false (branco)
   });
 
   const [notifications, setNotifications] = useState({
@@ -15,13 +16,14 @@ export default function Settings() {
 
   const [salvando, setSalvando] = useState(false);
 
-  // CONTROLADOR DE TEMA: Aplica a classe no HTML inteiro
+  // 2. Aplicação do tema com limpeza de cache
   useEffect(() => {
+    const root = window.document.documentElement;
     if (darkMode) {
-      document.documentElement.classList.add("dark");
+      root.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
@@ -31,62 +33,64 @@ export default function Settings() {
     localStorage.setItem("notifications", JSON.stringify(notifications));
     setTimeout(() => {
       setSalvando(false);
-      alert("Configurações salvas com sucesso!");
+      alert("Configurações salvas!");
     }, 800);
   };
 
   return (
-    <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
+    /* MUDANÇA AQUI: bg-gray-50 fixo para o claro e dark:bg-slate-950 para o escuro */
+    <div className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-          <SettingsIcon size={28} className="text-indigo-600" /> Configurações
-        </h1>
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
+            <SettingsIcon size={28} className="text-indigo-600" /> Configurações
+          </h1>
+        </header>
 
         <div className="space-y-6">
-          {/* SEÇÃO: APARÊNCIA (COM SWITCH DE VOLTA) */}
+          {/* APARÊNCIA */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-              {darkMode ? <Moon size={20} className="text-indigo-500" /> : <Sun size={20} className="text-orange-500" />} 
-              Aparência
-            </h2>
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
-              <div>
-                <p className="font-bold text-gray-700 dark:text-slate-300">Modo Escuro</p>
-                <p className="text-sm text-gray-500 dark:text-slate-500">Alternar entre tema claro e escuro.</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                  {darkMode ? <Moon className="text-indigo-600" /> : <Sun className="text-orange-500" />}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-white">Tema do Sistema</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Escolha entre o modo claro ou escuro</p>
+                </div>
               </div>
-              
-              {/* O BOTÃO MÁGICO QUE VOCÊ QUERIA */}
+
+              {/* SWITCH CASEIRO (MAIS SEGURO) */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${darkMode ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                className={`group relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                  darkMode ? "bg-indigo-600" : "bg-gray-300"
+                }`}
               >
-                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${darkMode ? 'translate-x-6' : 'translate-x-0'} flex items-center justify-center`}>
-                  {darkMode ? <Moon size={12} className="text-indigo-600" /> : <Sun size={12} className="text-orange-500" />}
-                </div>
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${
+                    darkMode ? "translate-x-8" : "translate-x-1"
+                  }`}
+                />
               </button>
             </div>
           </section>
 
-          {/* SEÇÃO: NOTIFICAÇÕES */}
+          {/* NOTIFICAÇÕES */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <Bell size={20} className="text-indigo-500" /> Notificações do Sentinel
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+              <Bell size={20} className="text-indigo-500" /> Notificações
             </h2>
             <div className="space-y-4">
-              {[
-                { key: 'email', label: 'Alertas por E-mail', desc: 'Receba relatórios semanais e alertas críticos.' },
-                { key: 'estoqueBaixo', label: 'Estoque Baixo', desc: 'Avisar quando um EPI atingir o nível mínimo.' },
-              ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-4 last:border-0 last:pb-0">
-                  <div>
-                    <p className="font-bold text-gray-700 dark:text-slate-300">{item.label}</p>
-                    <p className="text-sm text-gray-500 dark:text-slate-500">{item.desc}</p>
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    checked={(notifications as any)[item.key]}
-                    onChange={() => setNotifications({...notifications, [item.key]: !(notifications as any)[item.key]})}
-                    className="w-5 h-5 accent-indigo-600 cursor-pointer"
+              {Object.keys(notifications).map((key) => (
+                <div key={key} className="flex items-center justify-between pb-2 border-b border-gray-50 dark:border-slate-800 last:border-0">
+                  <span className="text-gray-700 dark:text-gray-300 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                  <input
+                    type="checkbox"
+                    checked={(notifications as any)[key]}
+                    onChange={() => setNotifications({ ...notifications, [key]: !(notifications as any)[key] })}
+                    className="w-5 h-5 accent-indigo-600"
                   />
                 </div>
               ))}
@@ -95,11 +99,15 @@ export default function Settings() {
         </div>
 
         <div className="mt-8 flex justify-end">
-          <button onClick={handleSave} disabled={salvando} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-2xl font-bold shadow-lg transition-all active:scale-95">
-            {salvando ? "Salvando..." : "Salvar Alterações"}
+          <button
+            onClick={handleSave}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
+            disabled={salvando}
+          >
+            {salvando ? "Processando..." : "Salvar Configurações"}
           </button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
