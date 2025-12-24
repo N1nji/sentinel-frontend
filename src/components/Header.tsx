@@ -207,10 +207,10 @@ export default function Header() {
                   <span className="font-medium">Meu Perfil</span>
                 </NavLink>
                 {/* SETTINGS VOLTOU AQUI! */}
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
+                <NavLink to="/settings" className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
                   <Settings size={18} className="text-gray-400 group-hover:text-blue-600" />
                   <span className="font-medium">Configurações</span>
-                </button>
+                </NavLink>
                 <div className="h-[1px] bg-gray-100 my-1.5" />
                 <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors group">
                   <LogOut size={18} className="text-red-400 group-hover:text-red-600" />

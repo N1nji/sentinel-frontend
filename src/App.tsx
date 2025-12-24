@@ -14,6 +14,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import ChatPage from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 export default function App() {
   
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="/chat" element={<ChatPage />} />
           <Route path="relatorios" element={<Relatorios />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
         {/* fallback */}
