@@ -49,13 +49,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* BOTÃO MOBILE (Hambúrguer) */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-5 left-5 z-[60] p-3 bg-slate-950 text-white rounded-xl shadow-2xl border border-slate-800"
-      >
-        {isOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
-      </button>
+      {/* BOTÃO MOBILE (Hambúrguer) - Ele some quando a sidebar abre (!isOpen) */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="lg:hidden fixed top-5 left-5 z-[60] p-3 bg-slate-950 text-white rounded-xl shadow-2xl border border-slate-800"
+        >
+          <MenuIcon size={24} />
+        </button>
+      )}
 
       {/* OVERLAY MOBILE */}
       {isOpen && (
@@ -74,7 +76,7 @@ export default function Sidebar() {
         lg:static lg:translate-x-0
       `}>
         
-        {/* LOGO AREA */}
+        {/* LOGO AREA - Agora com o botão X alinhado corretamente */}
         <div className="mb-10 px-2 mt-4 lg:mt-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -85,11 +87,20 @@ export default function Sidebar() {
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500/80">Safety System</p>
             </div>
           </div>
+
+          {/* BOTÃO DE FECHAR (X) - Fica interno à Sidebar, alinhado à direita da Logo */}
+          {isOpen && (
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
+            >
+              <XIcon size={24} />
+            </button>
+          )}
         </div>
 
         {/* NAVEGAÇÃO */}
         <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
-          
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 ml-4">Principal</p>
 
           <NavLink to="/dashboard" onClick={() => setIsOpen(false)} className={({ isActive }) => linkClass(isActive)}>
