@@ -4,8 +4,10 @@ import { Settings as SettingsIcon, Moon, Sun, Bell, Globe, Save } from "lucide-r
 export default function Settings() {
   // Estado para o Dark Mode (pegando o que salvamos no localStorage)
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
-  });
+    const salvo = localStorage.getItem("theme");
+  // Se não tiver nada salvo, o padrão agora é FALSE (light)
+    return salvo === "dark" ? true : false; 
+ });
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -22,7 +24,7 @@ export default function Settings() {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-  }, [darkMode]);
+  }, [darkMode]);       
 
   return (
     <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
