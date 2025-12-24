@@ -13,7 +13,7 @@ import {
   LogOutIcon,
   MenuIcon,
   XIcon,
-} from "lucide-react"; // Ou Heroicons, usei nomes genéricos para facilitar
+} from "lucide-react";
 
 interface TokenPayload {
   id: string;
@@ -40,7 +40,6 @@ export default function Sidebar() {
     navigate("/login");
   };
 
-  // Estilização premium para os links
   const linkClass = (isActive: boolean) =>
     `flex items-center gap-3 px-4 py-3 rounded-2xl font-bold transition-all duration-300 ${
       isActive
@@ -50,10 +49,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* BOTÃO MOBILE (Hambúrguer) - Só aparece em telas pequenas */}
+      {/* BOTÃO MOBILE (Hambúrguer) */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-xl shadow-xl"
+        className="lg:hidden fixed top-5 left-5 z-[60] p-3 bg-slate-950 text-white rounded-xl shadow-2xl border border-slate-800"
       >
         {isOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
       </button>
@@ -61,27 +60,28 @@ export default function Sidebar() {
       {/* OVERLAY MOBILE */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-[40] lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* SIDEBAR PRINCIPAL */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-40
+        fixed inset-y-0 left-0 z-[50]
         w-72 bg-slate-950 text-white p-6 flex flex-col
-        transition-transform duration-300 ease-in-out
+        transition-transform duration-300 ease-in-out border-r border-slate-900
         ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        lg:static lg:translate-x-0
       `}>
         
         {/* LOGO AREA */}
-        <div className="mb-10 px-2">
+        <div className="mb-10 px-2 mt-4 lg:mt-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <ShieldCheckIcon className="text-white" size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tighter">SENTINEL</h1>
+              <h1 className="text-xl font-black tracking-tighter text-white">SENTINEL</h1>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500/80">Safety System</p>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function Sidebar() {
             Sair do Sistema
           </button>
           
-          <div className="mt-4 px-4">
+          <div className="mt-4 px-4 text-center lg:text-left">
             <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">v1.0.4 • Sentinel AI</p>
           </div>
         </div>
