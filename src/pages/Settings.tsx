@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Bell, Globe, Save } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Bell, Globe } from "lucide-react";
 
 export default function Settings() {
-  // 1. Lógica de inicialização ultra segura
+  // 1. Inicialização segura: se não houver nada, começa no Light (false)
   const [darkMode, setDarkMode] = useState(() => {
     const salvo = localStorage.getItem("theme");
-    return salvo === "dark"; // Se for vazio ou 'light', retorna false (branco)
+    return salvo === "dark"; 
   });
 
   const [notifications, setNotifications] = useState({
@@ -16,7 +16,7 @@ export default function Settings() {
 
   const [salvando, setSalvando] = useState(false);
 
-  // 2. Aplicação do tema com limpeza de cache
+  // 2. Aplicação do tema
   useEffect(() => {
     const root = window.document.documentElement;
     if (darkMode) {
@@ -38,7 +38,6 @@ export default function Settings() {
   };
 
   return (
-    /* MUDANÇA AQUI: bg-gray-50 fixo para o claro e dark:bg-slate-950 para o escuro */
     <div className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
@@ -48,7 +47,7 @@ export default function Settings() {
         </header>
 
         <div className="space-y-6">
-          {/* APARÊNCIA */}
+          {/* SEÇÃO: APARÊNCIA */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -61,7 +60,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* SWITCH CASEIRO (MAIS SEGURO) */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className={`group relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
@@ -77,23 +75,40 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* NOTIFICAÇÕES */}
+          {/* SEÇÃO: NOTIFICAÇÕES */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
             <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
               <Bell size={20} className="text-indigo-500" /> Notificações
             </h2>
             <div className="space-y-4">
-              {Object.keys(notifications).map((key) => (
+              {Object.entries(notifications).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between pb-2 border-b border-gray-50 dark:border-slate-800 last:border-0">
-                  <span className="text-gray-700 dark:text-gray-300 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {key === 'estoqueBaixo' ? 'Alertas de Estoque' : key === 'email' ? 'Notificações por E-mail' : 'Notificações Push'}
+                  </span>
                   <input
                     type="checkbox"
-                    checked={(notifications as any)[key]}
-                    onChange={() => setNotifications({ ...notifications, [key]: !(notifications as any)[key] })}
-                    className="w-5 h-5 accent-indigo-600"
+                    checked={value}
+                    onChange={() => setNotifications({ ...notifications, [key]: !value })}
+                    className="w-5 h-5 accent-indigo-600 cursor-pointer"
                   />
                 </div>
               ))}
+            </div>
+          </section>
+
+          {/* SEÇÃO: IDIOMA (VOLTOU!) */}
+          <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800 opacity-60">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
+                <Globe size={20} className="text-indigo-500" /> Idioma e Região
+              </h2>
+              <span className="text-[10px] font-black bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full text-gray-500 uppercase tracking-wider">
+                Em Breve
+              </span>
+            </div>
+            <div className="h-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-300 dark:border-slate-700 flex items-center justify-center">
+               <span className="text-xs text-gray-400">Tradução automática em desenvolvimento</span>
             </div>
           </section>
         </div>
