@@ -174,7 +174,6 @@ export default function Entregas() {
     doc.text(validadeStr, 130, 92);
     doc.text(String(en.quantidade), 175, 92);
 
-    // --- ATUALIZAÇÃO: ADICIONANDO OBSERVAÇÃO TÉCNICA NO PDF ---
     if (en.observacao) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8);
@@ -272,113 +271,114 @@ export default function Entregas() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen relative">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto bg-gray-50 dark:bg-slate-950 min-h-screen relative transition-colors">
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
 
       {showToast.show && (
-        <div className="fixed top-5 right-5 z-[100] bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-4 animate-bounce">
+        <div className="fixed top-5 right-5 z-[100] bg-gray-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 dark:border-slate-200 flex items-center gap-4 animate-bounce">
           <div className="bg-emerald-500 p-2 rounded-lg">
             <BellAlertIcon className="h-6 w-6 text-white" />
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Novo Registro</p>
-            <p className="text-sm font-bold text-gray-100">{showToast.msg}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 dark:text-emerald-600">Novo Registro</p>
+            <p className="text-sm font-bold">{showToast.msg}</p>
           </div>
         </div>
       )}
 
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Entregas de EPI</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Entregas de EPI</h1>
           <div className="flex items-center gap-2 mt-1">
             <CheckBadgeIcon className="h-5 w-5 text-emerald-500" />
-            <p className="text-gray-500 text-sm font-medium">Controle jurídico e operacional.</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Controle jurídico e operacional.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
           {alertLowStock && (
-            <div className="bg-rose-100 text-rose-700 px-4 py-2 rounded-xl border border-rose-200 text-xs font-black flex items-center gap-2 animate-pulse">
-              <ExclamationTriangleIcon className="h-4 w-4" /> ATENÇÃO: {alertLowStock}
+            <div className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-800 text-[10px] md:text-xs font-black flex items-center gap-2 animate-pulse">
+              <ExclamationTriangleIcon className="h-4 w-4 shrink-0" /> ATENÇÃO: {alertLowStock}
             </div>
           )}
-          <button onClick={() => setOpenModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl shadow-lg transition-all font-bold flex items-center gap-2">
-            <PlusIcon className="h-5 w-5" /> Nova Entrega
+          <button onClick={() => setOpenModal(true)} className="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-lg transition-all font-bold flex items-center justify-center gap-2 active:scale-95">
+            <PlusIcon className="h-5 w-5" /> <span className="whitespace-nowrap">Nova Entrega</span>
           </button>
         </div>
       </div>
 
       {/* FILTROS */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        <div className="flex items-center gap-2 text-gray-400 mr-2">
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-4 no-scrollbar">
+        <div className="flex items-center gap-2 text-gray-400 dark:text-slate-500 mr-2 shrink-0">
           <FunnelIcon className="h-4 w-4" />
           <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
         </div>
-        <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>Todos</button>
-        <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50'}`}>Somente Ativos</button>
-        <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50'}`}>Devolvidos</button>
+        <div className="flex gap-2">
+          <button onClick={() => setFiltroStatus("todos")} className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? 'bg-gray-800 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-800'}`}>Todos</button>
+          <button onClick={() => setFiltroStatus("ativos")} className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 text-emerald-600 border border-emerald-100 dark:border-emerald-900/50'}`}>Ativos</button>
+          <button onClick={() => setFiltroStatus("devolvidos")} className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 text-blue-600 border border-blue-100 dark:border-blue-900/50'}`}>Devolvidos</button>
+        </div>
       </div>
 
       {/* TABELA */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden transition-colors">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[800px]">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 text-[10px] font-black uppercase tracking-widest">
-                <th className="p-4">Colaborador / Equipamento</th>
-                <th className="p-4 text-center">Qtd</th>
-                <th className="p-4">Data / CA</th>
-                <th className="p-4 text-center">Status</th>
-                <th className="p-4 text-right">Ações</th>
+              <tr className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-800 text-gray-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                <th className="p-5">Colaborador / Equipamento</th>
+                <th className="p-5 text-center">Qtd</th>
+                <th className="p-5">Data / CA</th>
+                <th className="p-5 text-center">Status</th>
+                <th className="p-5 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
               {entregasFiltradas.map(en => {
                 const isCAVencido = en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca) < new Date() : false;
                 return (
-                  <tr key={en._id} className="hover:bg-blue-50/20 transition-all group">
-                    <td className="p-4">
+                  <tr key={en._id} className="hover:bg-blue-50/20 dark:hover:bg-blue-900/10 transition-all group">
+                    <td className="p-5">
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-800">{en.colaboradorId?.nome}</span>
-                        <span className="text-xs text-blue-600 flex items-center gap-1 font-medium">
+                        <span className="font-bold text-gray-800 dark:text-slate-200">{en.colaboradorId?.nome}</span>
+                        <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1 font-medium">
                           <InformationCircleIcon className="h-3.5 w-3.5" /> {en.epiSnapshot?.nome || en.epiId?.nome}
                         </span>
-                        {/* ATUALIZAÇÃO: MOSTRANDO OBSERVAÇÃO NA TABELA */}
                         {en.observacao && (
-                          <p className="text-[10px] text-gray-400 italic mt-1 max-w-[250px] truncate" title={en.observacao}>
+                          <p className="text-[10px] text-gray-400 dark:text-slate-500 italic mt-1 max-w-[250px] truncate" title={en.observacao}>
                             "{en.observacao}"
                           </p>
                         )}
                       </div>
                     </td>
-                    <td className="p-4 text-center">
-                      <span className="bg-gray-100 px-2 py-1 rounded-md text-xs font-bold text-gray-600">{en.quantidade}</span>
+                    <td className="p-5 text-center">
+                      <span className="bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-lg text-xs font-bold text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700">{en.quantidade}</span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-5">
                       <div className="flex flex-col text-[11px]">
-                        <span className="text-gray-600 font-bold tracking-tight flex items-center gap-1">
+                        <span className="text-gray-600 dark:text-slate-300 font-bold tracking-tight flex items-center gap-1">
                           <CalendarDaysIcon className="h-3.5 w-3.5 text-gray-400" />
                           {new Date(en.dataEntrega).toLocaleDateString()}
                         </span>
-                        <span className={`${isCAVencido ? 'text-red-500 font-black' : 'text-gray-400 font-medium'}`}>
+                        <span className={`${isCAVencido ? 'text-rose-500 dark:text-rose-400 font-black' : 'text-gray-400 dark:text-slate-500 font-medium'}`}>
                           CA: {en.epiSnapshot?.ca || '---'} {isCAVencido && ' (VENCIDO)'}
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 text-center">
-                      <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${en.devolvida ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                    <td className="p-5 text-center">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${en.devolvida ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900'}`}>
                         {en.devolvida ? 'Devolvido' : 'Ativo'}
                       </span>
                     </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-1">
-                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600"><ArrowDownTrayIcon className="h-5 w-5"/></button>
+                    <td className="p-5 text-right">
+                      <div className="flex justify-end gap-1 md:opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 dark:text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"><ArrowDownTrayIcon className="h-5 w-5"/></button>
                         {!en.devolvida && (
-                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
+                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 dark:text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
                         )}
                         {isAdmin && (
-                          <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600"><TrashIcon className="h-5 w-5"/></button>
+                          <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"><TrashIcon className="h-5 w-5"/></button>
                         )}
                       </div>
                     </td>
@@ -392,65 +392,86 @@ export default function Entregas() {
 
       {/* MODAL NOVA ENTREGA */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className="w-full border-gray-300 rounded-xl">
-              <option value="">Selecione Colaborador</option>
-              {colaboradores.map(c => <option key={c._id} value={c._id}>{c.nome}</option>)}
-            </select>
-            <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="w-full border-gray-300 rounded-xl">
-              <option value="">Selecione EPI</option>
-              {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome}</option>)}
-            </select>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Colaborador</label>
+              <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white rounded-2xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all">
+                <option value="">Selecione Colaborador</option>
+                {colaboradores.map(c => <option key={c._id} value={c._id}>{c.nome}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Equipamento (EPI)</label>
+              <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white rounded-2xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all">
+                <option value="">Selecione EPI</option>
+                {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome}</option>)}
+              </select>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="w-24 border-gray-300 rounded-xl" required />
-            <div className="flex-1 relative">
-            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className="w-full border-gray-300 rounded-xl pr-10" />
-            <button type="button" onClick={() => setOpenIA(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors" title="Consultar Sentinel IA">
-              <SparklesIcon className="h-5 w-5" />
-            </button>
+          
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="sm:w-32 space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Quantidade</label>
+              <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white rounded-2xl p-3 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" required />
+            </div>
+            <div className="flex-1 space-y-1">
+              <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Observações Técnicas</label>
+              <div className="relative">
+                <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Clique na estrela para IA..." className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white rounded-2xl p-3 pr-12 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" />
+                <button type="button" onClick={() => setOpenIA(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors">
+                  <SparklesIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-          <div ref={canvasContainerRef} className="border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 h-[200px] relative">
-            <SignaturePad ref={sigPadRef} canvasProps={{ className: "w-full h-full" }} />
-            <button type="button" onClick={() => sigPadRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Assinatura Digital (Toque ou Mouse)</label>
+            <div ref={canvasContainerRef} className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-gray-50 dark:bg-slate-800 h-[200px] relative overflow-hidden transition-colors">
+              <SignaturePad ref={sigPadRef} canvasProps={{ className: "w-full h-full" }} penColor={document.documentElement.classList.contains('dark') ? 'white' : 'black'} />
+              <button type="button" onClick={() => sigPadRef.current.clear()} className="absolute top-2 right-2 bg-white dark:bg-slate-900 dark:text-white px-3 py-1 text-[10px] font-bold rounded-lg border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">Limpar</button>
+            </div>
           </div>
-          <button disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs">
-            {loading ? "Registrando..." : "Confirmar Entrega"}
+
+          <button disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-none uppercase text-xs tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 mt-2">
+            {loading ? "Processando..." : "Confirmar Entrega de EPI"}
           </button>
         </form>
       </Modal>
 
-      {/* ATUALIZAÇÃO: MODAL DE DEVOLUÇÃO COM INFO DO ITEM */}
-      <Modal open={openDevolucao} onClose={() => setOpenDevolucao(false)} title="Confirmar Devolução">
-        <div className="space-y-4">
+      {/* MODAL DE DEVOLUÇÃO */}
+      <Modal open={openDevolucao} onClose={() => setOpenDevolucao(false)} title="Receber Devolução">
+        <div className="space-y-4 pt-4">
           {devolucaoEntrega && (
-            <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-2">
-              <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Colaborador / Item</p>
-              <p className="text-sm font-bold text-gray-800">{devolucaoEntrega.colaboradorId?.nome}</p>
-              <p className="text-xs text-orange-600 font-medium">
+            <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 p-4 rounded-2xl">
+              <p className="text-[10px] font-black text-orange-400 dark:text-orange-500 uppercase tracking-widest mb-1">Colaborador / Item</p>
+              <p className="text-sm font-bold text-gray-800 dark:text-slate-200">{devolucaoEntrega.colaboradorId?.nome}</p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 font-medium mt-0.5">
                 {devolucaoEntrega.epiSnapshot?.nome || devolucaoEntrega.epiId?.nome} ({devolucaoEntrega.quantidade} un)
               </p>
             </div>
           )}
 
           <div className="space-y-1">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Observações da Devolução</label>
+            <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Estado do Item na Devolução</label>
             <input 
               value={devolucaoObs} 
               onChange={(e) => setDevolucaoObs(e.target.value)} 
-              className="w-full border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500" 
-              placeholder="Ex: Item danificado, desgaste natural..." 
+              className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white rounded-2xl p-3 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-sm" 
+              placeholder="Ex: Desgaste natural, danificado, troca periódica..." 
             />
           </div>
 
-          <div className="border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 h-[150px] relative">
-            <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} />
-            <button type="button" onClick={() => sigPadDevolucaoRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest ml-1">Assinatura de Recebimento</label>
+            <div className="border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-2xl bg-gray-50 dark:bg-slate-800 h-[150px] relative overflow-hidden transition-colors">
+              <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} penColor={document.documentElement.classList.contains('dark') ? 'white' : 'black'} />
+              <button type="button" onClick={() => sigPadDevolucaoRef.current.clear()} className="absolute top-2 right-2 bg-white dark:bg-slate-900 dark:text-white px-3 py-1 text-[10px] font-bold rounded-lg border border-gray-200 dark:border-slate-700 transition-colors">Limpar</button>
+            </div>
           </div>
 
-          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs transition-all">
+          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-200 dark:shadow-none uppercase text-xs tracking-widest transition-all active:scale-[0.98] disabled:opacity-50">
             {devolucaoLoading ? "Gravando..." : "Confirmar Recebimento de Devolução"}
           </button>
         </div>
@@ -473,7 +494,7 @@ export default function Entregas() {
       <ConfirmModal
         open={openDelete}
         title="Remover Registro?"
-        message="A exclusão retornará o item ao estoque."
+        message="A exclusão retornará o item ao estoque e invalidará o recibo jurídico."
         onClose={() => setOpenDelete(false)}
         onConfirm={handleDelete}
       />

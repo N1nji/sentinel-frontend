@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Settings as SettingsIcon, Moon, Sun, Bell, Globe } from "lucide-react";
 
 export default function Settings() {
-  // 1. Inicialização segura: se não houver nada, começa no Light (false)
-  const [darkMode, setDarkMode] = useState(() => {
-    const salvo = localStorage.getItem("theme");
-    return salvo === "dark"; 
-  });
+  // 🔹 Sempre inicia claro
+  const [darkMode, setDarkMode] = useState(false);
+
+  // 🔹 Controla se o usuário já interagiu
+  const userInteracted = useRef(false);
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -16,9 +16,12 @@ export default function Settings() {
 
   const [salvando, setSalvando] = useState(false);
 
-  // 2. Aplicação do tema
+  // 🔹 Aplica tema APENAS após interação
   useEffect(() => {
-    const root = window.document.documentElement;
+    const root = document.documentElement;
+
+    if (!userInteracted.current) return;
+
     if (darkMode) {
       root.classList.add("dark");
       localStorage.setItem("theme", "dark");
@@ -28,6 +31,13 @@ export default function Settings() {
     }
   }, [darkMode]);
 
+  // 🔹 Toggle de tema
+  const toggleTheme = () => {
+    userInteracted.current = true;
+    setDarkMode(prev => !prev);
+  };
+
+  // 🔹 Salvar notificações
   const handleSave = () => {
     setSalvando(true);
     localStorage.setItem("notifications", JSON.stringify(notifications));
@@ -42,27 +52,36 @@ export default function Settings() {
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-3">
-            <SettingsIcon size={28} className="text-indigo-600" /> Configurações
+            <SettingsIcon size={28} className="text-indigo-600" />
+            Configurações
           </h1>
         </header>
 
         <div className="space-y-6">
-          {/* SEÇÃO: APARÊNCIA */}
+          {/* APARÊNCIA */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                  {darkMode ? <Moon className="text-indigo-600" /> : <Sun className="text-orange-500" />}
+                  {darkMode ? (
+                    <Moon className="text-indigo-600" />
+                  ) : (
+                    <Sun className="text-orange-500" />
+                  )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-800 dark:text-white">Tema do Sistema</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Escolha entre o modo claro ou escuro</p>
+                  <h2 className="text-lg font-bold text-gray-800 dark:text-white">
+                    Tema do Sistema
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Escolha entre modo claro ou escuro
+                  </p>
                 </div>
               </div>
 
               <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`group relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                onClick={toggleTheme}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 ${
                   darkMode ? "bg-indigo-600" : "bg-gray-300"
                 }`}
               >
@@ -75,21 +94,36 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* SEÇÃO: NOTIFICAÇÕES */}
+          {/* NOTIFICAÇÕES */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800">
             <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-              <Bell size={20} className="text-indigo-500" /> Notificações
+              <Bell size={20} className="text-indigo-500" />
+              Notificações
             </h2>
+
             <div className="space-y-4">
               {Object.entries(notifications).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between pb-2 border-b border-gray-50 dark:border-slate-800 last:border-0">
+                <div
+                  key={key}
+                  className="flex items-center justify-between pb-2 border-b border-gray-50 dark:border-slate-800 last:border-0"
+                >
                   <span className="text-gray-700 dark:text-gray-300">
-                    {key === 'estoqueBaixo' ? 'Alertas de Estoque' : key === 'email' ? 'Notificações por E-mail' : 'Notificações Push'}
+                    {key === "estoqueBaixo"
+                      ? "Alertas de Estoque"
+                      : key === "email"
+                      ? "Notificações por E-mail"
+                      : "Notificações Push"}
                   </span>
+
                   <input
                     type="checkbox"
                     checked={value}
-                    onChange={() => setNotifications({ ...notifications, [key]: !value })}
+                    onChange={() =>
+                      setNotifications({
+                        ...notifications,
+                        [key]: !value
+                      })
+                    }
                     className="w-5 h-5 accent-indigo-600 cursor-pointer"
                   />
                 </div>
@@ -97,18 +131,23 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* SEÇÃO: IDIOMA (VOLTOU!) */}
+          {/* IDIOMA */}
           <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm p-6 border border-gray-200 dark:border-slate-800 opacity-60">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
-                <Globe size={20} className="text-indigo-500" /> Idioma e Região
+                <Globe size={20} className="text-indigo-500" />
+                Idioma e Região
               </h2>
+
               <span className="text-[10px] font-black bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full text-gray-500 uppercase tracking-wider">
                 Em Breve
               </span>
             </div>
+
             <div className="h-12 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-300 dark:border-slate-700 flex items-center justify-center">
-               <span className="text-xs text-gray-400">Tradução automática em desenvolvimento</span>
+              <span className="text-xs text-gray-400">
+                Tradução automática em desenvolvimento
+              </span>
             </div>
           </section>
         </div>
@@ -116,8 +155,8 @@ export default function Settings() {
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleSave}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
             disabled={salvando}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-3 rounded-xl font-bold shadow-md transition-all active:scale-95 disabled:opacity-50"
           >
             {salvando ? "Processando..." : "Salvar Configurações"}
           </button>
