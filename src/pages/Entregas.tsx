@@ -21,7 +21,6 @@ import {
   BellAlertIcon
 } from "@heroicons/react/24/outline";
 
-// Criamos a instância fora para não resetar a cada renderização
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 const socket = io(SOCKET_URL, { autoConnect: true });
 
@@ -78,11 +77,8 @@ export default function Entregas() {
   const [isAdmin, setIsAdmin] = useState(false); 
   const token = localStorage.getItem("token");
 
-  // --- STATES DE NOTIFICAÇÃO ---
   const [showToast, setShowToast] = useState<{show: boolean, msg: string}>({ show: false, msg: "" });
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // IA
   const [openIA, setOpenIA] = useState(false);
 
   async function load() {
@@ -113,30 +109,22 @@ export default function Entregas() {
     }
   }
 
-  // --- CONFIGURAÇÃO DO SOCKET ---
   useEffect(() => {
-    // Escuta o evento que o Back-end emite
     socket.on("nova_entrega", (data: any) => {
-      console.log("Recebi notificação via Socket:", data);
       setShowToast({ show: true, msg: data.msg || "Nova entrega registrada!" });
-      
-      // Toca o som (Link direto sem erro 403)
       if (audioRef.current) {
-        audioRef.current.currentTime = 0; // Reinicia se já estiver tocando
-        audioRef.current.play().catch(_e => console.log("Áudio bloqueado pelo navegador até o primeiro clique."));
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(_e => {});
       }
-
       setTimeout(() => setShowToast({ show: false, msg: "" }), 5000);
-      load(); // Recarrega a lista
+      load();
     });
 
     const userTipo = localStorage.getItem("userTipo");
     setIsAdmin(userTipo === "admin");
     load(); 
 
-    return () => { 
-      socket.off("nova_entrega"); // Limpa o listener ao sair da página
-    };
+    return () => { socket.off("nova_entrega"); };
   }, []);
 
   const entregasFiltradas = entregas.filter(en => {
@@ -164,12 +152,14 @@ export default function Entregas() {
     doc.text(`Matrícula: ${en.colaboradorId?.matricula || "---"}`, 120, 55);
     const dataHora = new Date(en.dataEntrega);
     doc.text(`Data da Entrega: ${dataHora.toLocaleDateString()} às ${dataHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 10, 62);
+    
     if (en.devolvida && en.dataDevolucao) {
       const dataDev = new Date(en.dataDevolucao);
       doc.setTextColor(200, 0, 0);
       doc.text(`DATA DA DEVOLUÇÃO: ${dataDev.toLocaleDateString()} às ${dataDev.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, 10, 68);
       doc.setTextColor(0, 0, 0);
     }
+
     doc.setFillColor(245, 245, 245);
     doc.rect(10, 75, pageWidth - 20, 10, "F");
     doc.text("Item / Equipamento", 12, 82);
@@ -183,20 +173,33 @@ export default function Entregas() {
     const validadeStr = en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca).toLocaleDateString() : "---";
     doc.text(validadeStr, 130, 92);
     doc.text(String(en.quantidade), 175, 92);
+
+    // --- ATUALIZAÇÃO: ADICIONANDO OBSERVAÇÃO TÉCNICA NO PDF ---
+    if (en.observacao) {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      const obsSplit = doc.splitTextToSize(`Observação Técnica: ${en.observacao}`, pageWidth - 20);
+      doc.text(obsSplit, 10, 102);
+      doc.setTextColor(0, 0, 0);
+    }
+
     if (en.assinaturaBase64) {
       doc.setFont("helvetica", "bold");
-      doc.text("Assinatura do Recebedor (Entrega):", 10, 115);
-      doc.addImage(en.assinaturaBase64, "PNG", 10, 118, 50, 20);
-      doc.line(10, 138, 70, 138);
+      doc.text("Assinatura do Recebedor (Entrega):", 10, 125);
+      doc.addImage(en.assinaturaBase64, "PNG", 10, 128, 50, 20);
+      doc.line(10, 148, 70, 148);
     }
+
     if (en.devolvida && en.assinaturaDevolucaoBase64) {
       doc.setFont("helvetica", "bold");
-      doc.text("Assinatura de Recebimento (Devolução):", 110, 115);
-      doc.addImage(en.assinaturaDevolucaoBase64, "PNG", 110, 118, 50, 20);
-      doc.line(110, 138, 170, 138);
+      doc.text("Assinatura de Recebimento (Devolução):", 110, 125);
+      doc.addImage(en.assinaturaDevolucaoBase64, "PNG", 110, 128, 50, 20);
+      doc.line(110, 148, 170, 148);
       doc.setFontSize(8);
-      doc.text(`Motivo/Obs: ${en.observacaoDevolucao || "N/A"}`, 110, 142);
+      doc.text(`Motivo/Obs Devolução: ${en.observacaoDevolucao || "N/A"}`, 110, 153);
     }
+
     doc.setFontSize(8);
     doc.text(`ID do Registro: ${en._id}`, 10, 280);
     doc.text(`Recibo gerado em: ${new Date().toLocaleString()}`, 10, 285);
@@ -228,7 +231,6 @@ export default function Entregas() {
         colaboradorId, epiId, quantidade, observacao, assinaturaBase64: signature
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      // Emitimos usando a instância global para não precisar reconectar
       socket.emit("nova_entrega", { msg: "Entrega realizada com sucesso!" });
 
       setOpenModal(false);
@@ -253,6 +255,7 @@ export default function Entregas() {
         observacao: devolucaoObs, assinaturaBase64: signature
       }, { headers: { Authorization: `Bearer ${token}` } });
       setOpenDevolucao(false);
+      setDevolucaoObs("");
       load();
     } finally { setDevolucaoLoading(false); }
   }
@@ -270,10 +273,8 @@ export default function Entregas() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen relative">
-      {/* Link de som direto do Mixkit que não dá 403 */}
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
 
-      {/* TOAST DE NOTIFICAÇÃO */}
       {showToast.show && (
         <div className="fixed top-5 right-5 z-[100] bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-4 animate-bounce">
           <div className="bg-emerald-500 p-2 rounded-lg">
@@ -343,6 +344,12 @@ export default function Entregas() {
                         <span className="text-xs text-blue-600 flex items-center gap-1 font-medium">
                           <InformationCircleIcon className="h-3.5 w-3.5" /> {en.epiSnapshot?.nome || en.epiId?.nome}
                         </span>
+                        {/* ATUALIZAÇÃO: MOSTRANDO OBSERVAÇÃO NA TABELA */}
+                        {en.observacao && (
+                          <p className="text-[10px] text-gray-400 italic mt-1 max-w-[250px] truncate" title={en.observacao}>
+                            "{en.observacao}"
+                          </p>
+                        )}
                       </div>
                     </td>
                     <td className="p-4 text-center">
@@ -383,7 +390,7 @@ export default function Entregas() {
         </div>
       </div>
 
-      {/* MODAIS */}
+      {/* MODAL NOVA ENTREGA */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -415,14 +422,36 @@ export default function Entregas() {
         </form>
       </Modal>
 
+      {/* ATUALIZAÇÃO: MODAL DE DEVOLUÇÃO COM INFO DO ITEM */}
       <Modal open={openDevolucao} onClose={() => setOpenDevolucao(false)} title="Confirmar Devolução">
         <div className="space-y-4">
-          <input value={devolucaoObs} onChange={(e) => setDevolucaoObs(e.target.value)} className="w-full border-gray-300 rounded-xl" placeholder="Observações..." />
-          <div className="border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 h-[150px]">
-            <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} />
+          {devolucaoEntrega && (
+            <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-2">
+              <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Colaborador / Item</p>
+              <p className="text-sm font-bold text-gray-800">{devolucaoEntrega.colaboradorId?.nome}</p>
+              <p className="text-xs text-orange-600 font-medium">
+                {devolucaoEntrega.epiSnapshot?.nome || devolucaoEntrega.epiId?.nome} ({devolucaoEntrega.quantidade} un)
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Observações da Devolução</label>
+            <input 
+              value={devolucaoObs} 
+              onChange={(e) => setDevolucaoObs(e.target.value)} 
+              className="w-full border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500" 
+              placeholder="Ex: Item danificado, desgaste natural..." 
+            />
           </div>
-          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs">
-            {devolucaoLoading ? "Gravando..." : "Confirmar Recebimento"}
+
+          <div className="border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 h-[150px] relative">
+            <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} />
+            <button type="button" onClick={() => sigPadDevolucaoRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
+          </div>
+
+          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs transition-all">
+            {devolucaoLoading ? "Gravando..." : "Confirmar Recebimento de Devolução"}
           </button>
         </div>
       </Modal>
