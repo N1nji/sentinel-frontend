@@ -1,19 +1,21 @@
 import { jwtDecode } from "jwt-decode";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { LogOut, User, ChevronDown, Settings, Bell, CheckCircle2, AlertTriangle, Package } from "lucide-react";
+import { io } from "socket.io-client";
 
 interface TokenPayload {
+  id: string;
   nome?: string;
   email?: string;
   tipo?: string;
 }
 
 interface INotification {
-  id: string;
+  _id: string; 
   titulo: string;
-  msg: string;
+  mensagem: string;
   tipo: "estoque" | "entrega" | "vencimento";
-  data: string;
+  dataCriacao: string;
   lida: boolean;
 }
 
@@ -24,11 +26,10 @@ export default function Header() {
   const bellRef = useRef<HTMLDivElement>(null);
   const token = localStorage.getItem("token");
 
-  const [notificacoes, setNotificacoes] = useState<INotification[]>([
-    { id: "1", titulo: "Estoque Baixo", msg: "Luva de Vaqueta restam apenas 5 un.", tipo: "estoque", data: "10 min", lida: false },
-    { id: "2", titulo: "Nova Entrega", msg: "José Silva recebeu um novo Capacete.", tipo: "entrega", data: "1 hora", lida: false },
-    { id: "3", titulo: "CA Vencendo", msg: "Protetor Auricular vence em 15 dias.", tipo: "vencimento", data: "2 horas", lida: true },
-  ]);
+  // URL dinâmica para Produção ou Local
+  const API_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
+
+  const [notificacoes, setNotificacoes] = useState<INotification[]>([]);
 
   const unreadCount = useMemo(() => notificacoes.filter(n => !n.lida).length, [notificacoes]);
 
@@ -42,17 +43,55 @@ export default function Header() {
   }, [token]);
 
   useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`${API_URL}/notifications`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setNotificacoes(data);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar notificações", err);
+      }
+    };
+
+    if (token) fetchNotifications();
+
+    const socket = io(API_URL);
+
+    socket.on("nova_entrega", (data: any) => {
+      if (data.notificacao) {
+        setNotificacoes((prev) => [data.notificacao, ...prev]);
+      }
+    });
+
+    return () => { socket.disconnect(); };
+  }, [token, API_URL]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
-        setIsBellOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setIsOpen(false);
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) setIsBellOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const marcarComoLida = async (id: string) => {
+    try {
+      const response = await fetch(`${API_URL}/notifications/${id}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setNotificacoes(prev => prev.map(n => n._id === id ? { ...n, lida: true } : n));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   function logout() {
     localStorage.removeItem("token");
@@ -70,28 +109,19 @@ export default function Header() {
   return (
     <header className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 sm:px-8 py-3 flex items-center justify-between sticky top-0 z-[40]">
       
-      {/* ESQUERDA — TÍTULO (Com padding para o botão da Sidebar no Mobile) */}
       <div className="flex items-center gap-3">
-        {/* Este div vazio de w-12 garante que o título não fique embaixo do botão hambúrguer no mobile */}
         <div className="w-12 lg:hidden" />
-        
         <div className="flex flex-col">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-tight tracking-tight">
-            Painel
-          </h2>
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-tight tracking-tight">Painel</h2>
           <div className="flex items-center gap-1.5">
             <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
-              Sentinel
-            </p>
+            <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Sentinel</p>
           </div>
         </div>
       </div>
 
-      {/* DIREITA — AÇÕES E USUÁRIO */}
       <div className="flex items-center gap-2 sm:gap-6">
-        
-        {/* DROPDOWN DE NOTIFICAÇÕES */}
+        {/* NOTIFICAÇÕES */}
         <div className="relative" ref={bellRef}>
           <button 
             onClick={() => setIsBellOpen(!isBellOpen)}
@@ -113,25 +143,32 @@ export default function Header() {
               </div>
               
               <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                {notificacoes.map((n) => (
-                  <div key={n.id} className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${!n.lida ? 'bg-blue-50/30' : ''}`}>
-                    <div className="mt-1">{getIcon(n.tipo)}</div>
-                    <div className="flex-1">
-                      <p className={`text-xs ${!n.lida ? 'font-bold text-gray-900' : 'text-gray-600'}`}>{n.titulo}</p>
-                      <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">{n.msg}</p>
-                      <p className="text-[9px] text-gray-400 mt-1 font-medium">{n.data} atrás</p>
+                {notificacoes.length === 0 ? (
+                  <div className="p-8 text-center text-gray-400 text-xs">Nenhuma notificação por enquanto.</div>
+                ) : (
+                  notificacoes.map((n) => (
+                    <div 
+                      key={n._id} 
+                      onClick={() => marcarComoLida(n._id)}
+                      className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${!n.lida ? 'bg-blue-50/30' : ''}`}
+                    >
+                      <div className="mt-1">{getIcon(n.tipo)}</div>
+                      <div className="flex-1">
+                        <p className={`text-xs ${!n.lida ? 'font-bold text-gray-900' : 'text-gray-600'}`}>{n.titulo}</p>
+                        <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">{n.mensagem}</p>
+                        <p className="text-[9px] text-gray-400 mt-1 font-medium">
+                          {new Date(n.dataCriacao).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-              <button className="w-full py-3 text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-50 uppercase tracking-widest">
-                Ver todas
-              </button>
-                <button 
-                  onClick={() => setNotificacoes([])} // <--- Aqui você usa a função!
-                  className="w-full py-3 text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-50 uppercase tracking-widest"
-                >
-                  Limpar todas
+              <button 
+                onClick={() => setNotificacoes([])} 
+                className="w-full py-3 text-[11px] font-bold text-red-500 hover:bg-red-50 transition-colors border-t border-gray-50 uppercase tracking-widest"
+              >
+                Limpar todas
               </button>
             </div>
           )}
@@ -139,13 +176,11 @@ export default function Header() {
 
         <div className="h-8 w-[1px] bg-gray-100 hidden xs:block" />
 
-        {/* CONTAINER DO USUÁRIO */}
+        {/* USUÁRIO */}
         <div className="relative" ref={dropdownRef}>
           <button 
-            onClick={() => setIsOpen(!isOpen)}
-            className={`flex items-center gap-2 sm:gap-3 p-1 rounded-full transition-all duration-200 ${
-              isOpen ? 'bg-gray-100' : 'hover:bg-gray-50'
-            }`}
+            onClick={() => setIsOpen(!isOpen)} 
+            className={`flex items-center gap-2 sm:gap-3 p-1 rounded-full transition-all duration-200 ${isOpen ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
           >
             <div className="text-right hidden sm:block pl-2">
               <p className="text-sm font-bold text-gray-800 leading-none mb-1">
@@ -170,6 +205,7 @@ export default function Header() {
                   <User size={18} className="text-gray-400 group-hover:text-blue-600" />
                   <span className="font-medium">Meu Perfil</span>
                 </button>
+                {/* SETTINGS VOLTOU AQUI! */}
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group">
                   <Settings size={18} className="text-gray-400 group-hover:text-blue-600" />
                   <span className="font-medium">Configurações</span>
