@@ -127,6 +127,12 @@ export default function Header() {
               <button className="w-full py-3 text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-50 uppercase tracking-widest">
                 Ver todas
               </button>
+                <button 
+                  onClick={() => setNotificacoes([])} // <--- Aqui você usa a função!
+                  className="w-full py-3 text-[11px] font-bold text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-50 uppercase tracking-widest"
+                >
+                  Limpar todas
+              </button>
             </div>
           )}
         </div>
