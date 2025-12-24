@@ -219,16 +219,16 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
   }
   
   if (loading) return (
-    <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh] gap-4">
+    <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh] gap-4 bg-white dark:bg-slate-950 transition-colors">
       <RefreshCw className="animate-spin text-indigo-600 h-10 w-10" />
-      <p className="font-black uppercase tracking-widest text-[10px] text-slate-400">Sincronizando Sentinel...</p>
+      <p className="font-black uppercase tracking-widest text-[10px] text-slate-400 dark:text-slate-500">Sincronizando Sentinel...</p>
     </div>
   );
 
-  if (!data) return <div className="p-10 text-center text-rose-500 font-black">FALHA NA CONEXÃO COM O SERVIDOR.</div>;
+  if (!data) return <div className="p-10 text-center text-rose-500 font-black bg-white dark:bg-slate-950">FALHA NA CONEXÃO COM O SERVIDOR.</div>;
 
   return (
-    <div className="space-y-8 pb-10 relative">
+    <div className="space-y-8 pb-10 relative bg-white dark:bg-slate-950 min-h-screen transition-colors px-4 sm:px-0">
       
       {/* --- NOVA FEATURE: NOTIFICAÇÃO FLOATING --- */}
       {newAlert && (
@@ -247,7 +247,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
       {/* ------------------------------------------ */}
 
       {/* PAINEL DE FILTROS */}
-      <section className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <section className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
         <FiltersPanel filters={filters} setFilters={setFilters} setores={setores} epis={epis} />
       </section>
 
@@ -277,7 +277,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
       </div>
 
       {/* BARRA DE IA E AÇÕES */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-6 rounded-[2rem] shadow-2xl">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900 dark:bg-slate-900 p-6 rounded-[2rem] shadow-2xl border border-slate-800">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/40">
             <BrainCircuit size={24} />
@@ -318,10 +318,10 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <div className="h-[320px] w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="opacity-10" />
                 <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
-                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', backgroundColor: '#1e293b', color: '#fff'}} />
                 <Line type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={4} dot={{r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
               </LineChart>
             </ResponsiveContainer>
@@ -345,7 +345,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
                 >
                   {pieData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} stroke="none" />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#fff'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -358,15 +358,15 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <Card title="Ranking de Requisições">
             <div className="mt-4 space-y-2">
               {data.rankingColabs.map((r, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all border border-transparent hover:border-slate-100">
+                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
                   <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-black text-slate-500">
+                    <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-black text-slate-500 dark:text-slate-400">
                       {i === 0 ? <Award size={14} className="text-amber-500" /> : `#${i+1}`}
                     </div>
                     <span className="font-bold text-slate-700 dark:text-slate-200 text-sm uppercase tracking-tight">{r._id}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xl font-black text-indigo-600">{r.total}</span>
+                    <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">{r.total}</span>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">UN</span>
                   </div>
                 </div>
@@ -387,14 +387,14 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
                 </div>
               ) : (
                 data.estoqueCritico.map((epi) => (
-                  <div key={epi._id} className="p-4 bg-rose-300 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center justify-between">
+                  <div key={epi._id} className="p-4 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-rose-500 rounded-lg text-white shadow-lg">
                         <AlertTriangle size={16} />
                       </div>
                       <div>
                         <p className="text-[10px] font-black text-rose-900 dark:text-rose-200 uppercase tracking-tighter leading-none mb-1">{epi.nome}</p>
-                        <p className="text-xs font-black text-rose-600 uppercase">Qtd: {epi.estoque}</p>
+                        <p className="text-xs font-black text-rose-600 dark:text-rose-400 uppercase">Qtd: {epi.estoque}</p>
                       </div>
                     </div>
                   </div>
