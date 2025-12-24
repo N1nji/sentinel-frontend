@@ -1,34 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { getChat, enviarMensagem, renomearChat, exportChatPdf } from "../services/chatService";
+import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto global
 import { 
   PaperAirplaneIcon, 
   ArrowDownTrayIcon, 
   PencilSquareIcon,
-  SunIcon,
-  MoonIcon,
-  SparklesIcon
+  SparklesIcon,
+  ChevronLeftIcon // Adicionado para mobile
 } from "@heroicons/react/24/outline";
 
-export default function ChatWindow({ chatId }: { chatId: string | null }) {
+export default function ChatWindow({ chatId, onBack }: { chatId: string | null; onBack?: () => void; }) {
+  const { darkMode } = useTheme(); // 🔹 Consumindo o tema global
   const [chat, setChat] = useState<any>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
-  
-  // MELHORIA: Inicializa o estado lendo a preferência salva
-  const [dark, setDark] = useState(() => {
-    return localStorage.getItem("chat-theme") === "dark";
-  });
 
   const ref = useRef<HTMLDivElement | null>(null);
-
-  // MELHORIA: Função que alterna o estado e grava no localStorage
-  const toggleTheme = () => {
-    const newTheme = !dark;
-    setDark(newTheme);
-    localStorage.setItem("chat-theme", newTheme ? "dark" : "light");
-  };
 
   useEffect(() => {
     if (!chatId) {
@@ -46,7 +35,6 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
     if (ref.current) ref.current.scrollTo({ top: ref.current.scrollHeight, behavior: 'smooth' });
   }, [chat, loading]);
 
-  // MELHORIA PDF: Lógica de download robusta
   async function handleExport() {
     if (!chatId) return;
     try {
@@ -80,30 +68,45 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
     }
   }
 
+  // PLACEHOLDER QUANDO NÃO HÁ CHAT SELECIONADO
   if (!chatId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 text-gray-400">
+      <div className={`flex-1 flex flex-col items-center justify-center p-4 text-center transition-colors ${darkMode ? "bg-slate-950 text-slate-500" : "bg-gray-50 text-gray-400"}`}>
         <SparklesIcon className="h-16 w-16 mb-4 opacity-20" />
-        <p className="font-medium">Como posso ajudar na segurança do trabalho hoje?</p>
+        <h2 className={`text-xl font-bold mb-2 ${darkMode ? "text-slate-300" : "text-gray-600"}`}>Sentinel AI</h2>
+        <p className="max-w-xs text-sm">Selecione uma conversa ao lado ou inicie um novo atendimento de segurança.</p>
       </div>
     );
   }
 
   return (
-    <div className={`flex-1 flex flex-col h-full overflow-hidden transition-colors duration-300 ${dark ? "bg-slate-900" : "bg-white"}`}>
+    /* Ajuste Mobile: h-full e min-h-0 garantem que o flexbox 
+       não "estoure" a tela do celular 
+    */
+    <div className={`flex-1 flex flex-col h-full min-h-0 transition-colors duration-300 ${darkMode ? "bg-slate-950" : "bg-white"}`}>
       
-      {/* HEADER ELEGANTE - Adicionado pr-16 para não bater no X do modal */}
-      <header className={`px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-md pr-16 ${dark ? "border-slate-800 bg-slate-900/80 text-white" : "border-gray-100 bg-white/80"}`}>
-        <div className="flex items-center gap-3">
-          {!editingTitle ? (
-            <div className="group flex items-center gap-2">
-              <h3 className="text-lg font-bold tracking-tight">{chat?.titulo}</h3>
-              <button onClick={() => setEditingTitle(true)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <PencilSquareIcon className="h-4 w-4 text-gray-400 hover:text-indigo-500" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
+      {/* HEADER DINÂMICO */}
+      <header className={`px-4 sm:px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-md ${
+        darkMode ? "border-slate-800 bg-slate-950/80 text-white" : "border-gray-100 bg-white/80"
+      }`}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          {/* 🔹 BOTÃO VOLTAR (Só aparece no Mobile) */}
+          <button 
+            onClick={onBack}
+            className="p-2 -ml-2 hover:bg-gray-500/10 rounded-full md:hidden transition-colors"
+          >
+            <ChevronLeftIcon className="h-6 w-6 text-indigo-500" />
+          </button>
+          {/* Botão de voltar (opcional, útil se você quiser esconder a lista no mobile) */}
+          <div className="flex items-center gap-2 group overflow-hidden">
+            {!editingTitle ? (
+              <>
+                <h3 className="text-base sm:text-lg font-bold truncate tracking-tight">{chat?.titulo}</h3>
+                <button onClick={() => setEditingTitle(true)} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <PencilSquareIcon className="h-4 w-4 text-gray-400" />
+                </button>
+              </>
+            ) : (
               <input 
                 autoFocus
                 value={titleValue} 
@@ -113,40 +116,45 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
                     setEditingTitle(false);
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                className={`text-sm px-3 py-1 rounded-lg border focus:ring-2 focus:ring-indigo-500 outline-none ${dark ? "bg-slate-800 border-slate-700 text-white" : "bg-gray-50 border-gray-200 text-black"}`}
+                className={`text-sm px-3 py-1 rounded-lg border outline-none w-full max-w-[200px] ${
+                  darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-gray-50 border-gray-200 text-black"
+                }`}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* BOTÃO ATUALIZADO: Agora chama toggleTheme para persistir a escolha */}
-          <button onClick={toggleTheme} className={`p-2 rounded-xl transition-all ${dark ? "bg-slate-800 text-yellow-400 hover:bg-slate-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-            {dark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-          </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button 
             onClick={handleExport} 
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md transition-all active:scale-95"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
           >
-            <ArrowDownTrayIcon className="h-4 w-4" /> PDF
+            <ArrowDownTrayIcon className="h-4 w-4" /> <span className="hidden sm:inline">Exportar</span> PDF
           </button>
         </div>
       </header>
 
-      {/* ÁREA DE MENSAGENS - Mantida com scrollbar */}
-      <div ref={ref} className="flex-1 overflow-y-auto px-4 py-8 space-y-6 scrollbar-thin scrollbar-thumb-gray-300">
+      {/* ÁREA DE MENSAGENS RESPONSIVA */}
+      <div 
+        ref={ref} 
+        className={`flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar ${
+          darkMode ? "bg-slate-950" : "bg-gray-50/30"
+        }`}
+      >
         <div className="max-w-3xl mx-auto space-y-6">
           {chat?.mensagens?.map((m: any, i: number) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`
-                relative max-w-[85%] px-5 py-3 rounded-2xl shadow-sm text-sm leading-relaxed
+                relative max-w-[90%] sm:max-w-[85%] px-4 py-3 rounded-2xl shadow-sm text-sm leading-relaxed
                 ${m.role === "user" 
                   ? "bg-indigo-600 text-white rounded-br-none" 
-                  : dark ? "bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700" : "bg-gray-100 text-slate-800 rounded-bl-none"
+                  : darkMode 
+                    ? "bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700" 
+                    : "bg-white text-slate-800 rounded-bl-none border border-gray-100"
                 }
               `}>
-                <span className={`text-[10px] font-black uppercase mb-1 block opacity-50`}>
-                  {m.role === "user" ? "Você" : "Sentinel AI"}
+                <span className={`text-[9px] font-black uppercase mb-1 block opacity-60 tracking-widest`}>
+                  {m.role === "user" ? "Operador" : "Sentinel AI"}
                 </span>
                 <div className="whitespace-pre-wrap">{m.content}</div>
               </div>
@@ -154,12 +162,12 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
           ))}
 
           {loading && (
-            <div className="flex justify-start animate-pulse">
-              <div className={`p-4 rounded-2xl rounded-bl-none ${dark ? "bg-slate-800" : "bg-gray-100"}`}>
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+            <div className="flex justify-start">
+              <div className={`p-4 rounded-2xl rounded-bl-none ${darkMode ? "bg-slate-800" : "bg-white border border-gray-100"}`}>
+                <div className="flex gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]" />
                 </div>
               </div>
             </div>
@@ -167,29 +175,39 @@ export default function ChatWindow({ chatId }: { chatId: string | null }) {
         </div>
       </div>
 
-      {/* ÁREA DE INPUT FLUTUANTE - Fixa no fundo com fundo sólido para não traspassar mensagens */}
-      <div className={`p-4 md:p-6 border-t ${dark ? "bg-slate-900 border-slate-800" : "bg-white border-gray-100"}`}>
-        <div className={`max-w-3xl mx-auto relative group rounded-2xl shadow-2xl transition-all border ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-gray-200"}`}>
+      {/* INPUT FIXO NO RODAPÉ */}
+      <footer className={`p-4 md:p-6 border-t transition-colors ${
+        darkMode ? "bg-slate-950 border-slate-800" : "bg-white border-gray-100"
+      }`}>
+        <div className={`max-w-3xl mx-auto relative group rounded-2xl shadow-lg transition-all border ${
+          darkMode ? "bg-slate-900 border-slate-800 focus-within:border-indigo-500" : "bg-gray-50 border-gray-200 focus-within:border-indigo-400"
+        }`}>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Pergunte algo sobre NR-6, vencimentos ou treinamentos..."
+            placeholder="Digite sua dúvida técnica..."
             rows={1}
-            className={`w-full p-4 pr-16 rounded-2xl resize-none outline-none text-sm bg-transparent ${dark ? "text-white" : "text-gray-800"}`}
+            className={`w-full p-4 pr-14 rounded-2xl resize-none outline-none text-sm bg-transparent ${
+              darkMode ? "text-white placeholder:text-slate-600" : "text-gray-800 placeholder:text-gray-400"
+            }`}
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all ${input.trim() ? "bg-indigo-600 text-white shadow-lg hover:scale-110" : "text-gray-400"}`}
+            className={`absolute right-2 bottom-2 p-2.5 rounded-xl transition-all ${
+              input.trim() 
+                ? "bg-indigo-600 text-white shadow-md hover:bg-indigo-700" 
+                : "text-gray-400"
+            }`}
           >
             <PaperAirplaneIcon className="h-5 w-5" />
           </button>
         </div>
-        <p className="text-center text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-widest">
-          Sentinel AI • Assistente de Segurança do Trabalho
+        <p className="text-center text-[9px] text-gray-500 mt-3 font-bold uppercase tracking-[0.2em] opacity-50">
+          Powered by Sentinel AI 
         </p>
-      </div>
+      </footer>
     </div>
   );
 }
