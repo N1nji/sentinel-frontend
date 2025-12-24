@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Moon, Sun, Bell, Globe, Save } from "lucide-react";
+import { Settings as SettingsIcon, Moon, Sun, Bell } from "lucide-react";
 
 export default function Settings() {
   // Estado inicial: Sempre tenta pegar o salvo, se não houver, assume FALSE (Light)
