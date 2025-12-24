@@ -1,16 +1,17 @@
+// src/components/ChatWindow.tsx
 import { useEffect, useRef, useState } from "react";
 import { getChat, enviarMensagem, renomearChat, exportChatPdf } from "../services/chatService";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto global
+import { useTheme } from "../context/ThemeContext"; 
 import { 
   PaperAirplaneIcon, 
   ArrowDownTrayIcon, 
   PencilSquareIcon,
   SparklesIcon,
-  ChevronLeftIcon // Adicionado para mobile
+  ChevronLeftIcon 
 } from "@heroicons/react/24/outline";
 
 export default function ChatWindow({ chatId, onBack }: { chatId: string | null; onBack?: () => void; }) {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o tema global
+  const { darkMode } = useTheme(); 
   const [chat, setChat] = useState<any>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,6 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
     }
   }
 
-  // PLACEHOLDER QUANDO NÃO HÁ CHAT SELECIONADO
   if (!chatId) {
     return (
       <div className={`flex-1 flex flex-col items-center justify-center p-4 text-center transition-colors ${darkMode ? "bg-slate-950 text-slate-500" : "bg-gray-50 text-gray-400"}`}>
@@ -80,24 +80,21 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
   }
 
   return (
-    /* Ajuste Mobile: h-full e min-h-0 garantem que o flexbox 
-       não "estoure" a tela do celular 
-    */
     <div className={`flex-1 flex flex-col h-full min-h-0 transition-colors duration-300 ${darkMode ? "bg-slate-950" : "bg-white"}`}>
       
-      {/* HEADER DINÂMICO */}
-      <header className={`px-4 sm:px-6 py-4 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-md ${
+      {/* HEADER DINÂMICO - Ajustado pr-14 para não bater no botão X do Modal */}
+      <header className={`pl-4 sm:pl-6 pr-14 py-4 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-md ${
         darkMode ? "border-slate-800 bg-slate-950/80 text-white" : "border-gray-100 bg-white/80"
       }`}>
         <div className="flex items-center gap-3 overflow-hidden">
-          {/* 🔹 BOTÃO VOLTAR (Só aparece no Mobile) */}
+          {/* BOTÃO VOLTAR (Mobile) */}
           <button 
             onClick={onBack}
             className="p-2 -ml-2 hover:bg-gray-500/10 rounded-full md:hidden transition-colors"
           >
             <ChevronLeftIcon className="h-6 w-6 text-indigo-500" />
           </button>
-          {/* Botão de voltar (opcional, útil se você quiser esconder a lista no mobile) */}
+
           <div className="flex items-center gap-2 group overflow-hidden">
             {!editingTitle ? (
               <>
@@ -116,7 +113,7 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
                     setEditingTitle(false);
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                className={`text-sm px-3 py-1 rounded-lg border outline-none w-full max-w-[200px] ${
+                className={`text-sm px-3 py-1 rounded-lg border outline-none w-full max-w-[150px] sm:max-w-[200px] ${
                   darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-gray-50 border-gray-200 text-black"
                 }`}
               />
@@ -129,12 +126,13 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
             onClick={handleExport} 
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
           >
-            <ArrowDownTrayIcon className="h-4 w-4" /> <span className="hidden sm:inline">Exportar</span> PDF
+            <ArrowDownTrayIcon className="h-4 w-4" /> 
+            <span className="hidden sm:inline">PDF</span>
           </button>
         </div>
       </header>
 
-      {/* ÁREA DE MENSAGENS RESPONSIVA */}
+      {/* ÁREA DE MENSAGENS */}
       <div 
         ref={ref} 
         className={`flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar ${
@@ -175,7 +173,7 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
         </div>
       </div>
 
-      {/* INPUT FIXO NO RODAPÉ */}
+      {/* INPUT */}
       <footer className={`p-4 md:p-6 border-t transition-colors ${
         darkMode ? "bg-slate-950 border-slate-800" : "bg-white border-gray-100"
       }`}>
