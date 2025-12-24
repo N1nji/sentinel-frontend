@@ -75,7 +75,7 @@ export default function Sidebar() {
       `}>
         
         {/* LOGO AREA */}
-        <div className="mb-10 px-2 mt-4 lg:mt-0">
+        <div className="mb-10 px-2 mt-4 lg:mt-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <ShieldCheckIcon className="text-white" size={24} />
