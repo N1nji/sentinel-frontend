@@ -6,7 +6,7 @@ export default function Settings() {
   const [darkMode, setDarkMode] = useState(() => {
     const salvo = localStorage.getItem("theme");
   // Se não tiver nada salvo, o padrão agora é FALSE (light)
-    return salvo === "dark" ? true : false; 
+    return salvo === "dark";    
  });
 
   const [notifications, setNotifications] = useState({
