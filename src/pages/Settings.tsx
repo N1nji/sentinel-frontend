@@ -44,7 +44,7 @@ export default function Settings() {
   };
 
   return (
-    <main className="flex-1 p-6 bg-white dark:bg-slate-950 min-h-screen transition-colors duration-300">
+    <main className="flex-1 p-6 bg-gray-50 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
           <SettingsIcon size={28} className="text-indigo-600" /> Configurações

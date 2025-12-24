@@ -18,18 +18,18 @@ import Settings from "./pages/Settings";
 
 export default function App() {
   
-  // EFEITO PARA PERSISTÊNCIA DO MODO ESCURO
+// EFEITO CORRIGIDO: Só lê o localStorage ao carregar o app
   useEffect(() => {
-    // Busca a preferência salva no localStorage
     const savedTheme = localStorage.getItem("theme");
     
-    // Se estiver salvo como dark, aplica a classe no HTML
+    // Se estiver explicitamente como 'dark', coloca a classe. 
+    // Se não tiver nada ou for 'light', remove a classe (garante o modo claro)
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, []);
+  }, []); // [] vazio significa que roda só 1 vez quando o site abre
 
   return (
     <BrowserRouter>
