@@ -1,11 +1,13 @@
+// src/components/KpiCard.tsx
 import type { ReactNode } from "react";
+import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
 
 interface KpiCardProps {
   label: string;
   value: number | string;
-  icon: ReactNode; // Adicionamos suporte a ícone
-  color?: "indigo" | "rose" | "emerald" | "amber" | "blue"; // Cores pré-definidas para manter o padrão
-  trend?: string; // Ex: "+12%" ou "Estável"
+  icon: ReactNode;
+  color?: "indigo" | "rose" | "emerald" | "amber" | "blue";
+  trend?: string;
 }
 
 export default function KpiCard({
@@ -15,14 +17,15 @@ export default function KpiCard({
   color = "indigo",
   trend,
 }: KpiCardProps) {
+  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
   
-  // Mapeamento de cores para manter o design system consistente
+  // Mapeamento de cores mantido, usando o darkMode para controlar as sombras
   const colorVariants = {
-    indigo: "from-indigo-600 to-indigo-700 shadow-indigo-200 dark:shadow-none",
-    rose: "from-rose-500 to-rose-600 shadow-rose-200 dark:shadow-none",
-    emerald: "from-emerald-500 to-emerald-600 shadow-emerald-200 dark:shadow-none",
-    amber: "from-amber-500 to-amber-600 shadow-amber-200 dark:shadow-none",
-    blue: "from-blue-500 to-blue-600 shadow-blue-200 dark:shadow-none",
+    indigo: `from-indigo-600 to-indigo-700 ${darkMode ? "shadow-none" : "shadow-indigo-200"}`,
+    rose: `from-rose-500 to-rose-600 ${darkMode ? "shadow-none" : "shadow-rose-200"}`,
+    emerald: `from-emerald-500 to-emerald-600 ${darkMode ? "shadow-none" : "shadow-emerald-200"}`,
+    amber: `from-amber-500 to-amber-600 ${darkMode ? "shadow-none" : "shadow-amber-200"}`,
+    blue: `from-blue-500 to-blue-600 ${darkMode ? "shadow-none" : "shadow-blue-200"}`,
   };
 
   return (
