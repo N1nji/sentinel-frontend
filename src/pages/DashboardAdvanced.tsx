@@ -1,3 +1,4 @@
+// src/pages/DashboardAdvanced.tsx
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import {
@@ -26,6 +27,7 @@ import {
   Award,
 } from "lucide-react";
 
+import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
 import Card from "../components/Card";
 import KpiCard from "../components/KpiCard";
 import FiltersPanel, { type Filters } from "../components/FiltersPanel";
@@ -65,6 +67,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
 }
 
 export default function DashboardAdvanced() {
+  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [setores, setSetores] = useState<{ _id: string; nome: string }[]>([]);
@@ -80,10 +83,7 @@ export default function DashboardAdvanced() {
   const [insightsText, setInsightsText] = useState("");
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [forecastLoading, setForecastLoading] = useState(false);
-  
-  // --- NOVA FEATURE: ESTADO DE ALERTA ---
   const [newAlert, setNewAlert] = useState(false);
-  // --------------------------------------
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -124,19 +124,13 @@ export default function DashboardAdvanced() {
     socketRef.current = io(SOCKET_URL);
     
     const handler = (payload: any) => {
-      console.log("📡 EVENTO RECEBIDO:", payload);
-
-      // --- NOVA FEATURE: SOM E PULSE NO HANDLER ---
       const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
       audio.volume = 0.7;
-      audio.play().catch(_e => console.warn("Áudio bloqueado pelo navegador. Clique na tela para liberar."));
+      audio.play().catch(_e => console.warn("Áudio bloqueado."));
       
       setNewAlert(true);
       loadDashboard();
-      
-      // Remove o alerta visual após 8 segundos
       setTimeout(() => setNewAlert(false), 8000);
-      // --------------------------------------------
     };
 
     socketRef.current.on("nova_entrega", handler);
@@ -144,7 +138,6 @@ export default function DashboardAdvanced() {
     return () => {
       socketRef.current?.off("nova_entrega", handler);
       socketRef.current?.disconnect();
-      socketRef.current = null;
     };
   }, []);
 
@@ -171,18 +164,12 @@ export default function DashboardAdvanced() {
       
       const resp = await generateInsights(resumo);
       let txt = resp?.insights || "Sem resposta da IA.";
-
       txt = txt.replace(/\*\*/g, '');
       txt = txt.replace(/^\s*\d\.\s*(.*Insights.*)/gim, 'ANÁLISE $1');
       txt = txt.replace(/^\s*\d\.\s*(.*Ações.*)/gim, 'AÇÕES $1');
       txt = txt.replace(/^\s*\d\.\s*(.*Sugestão.*)/gim, 'SUGESTÃO $1');
 
-      const formattedInsights = `ANÁLISE ESTRATÉGICA SENTINEL
-
-${txt.replace(/^\s*[-•*]\s*/gm, '  • ')}
-
----
-Gerado automaticamente pelo motor de IA Sentinel.`;
+      const formattedInsights = `ANÁLISE ESTRATÉGICA SENTINEL\n\n${txt.replace(/^\s*[-•*]\s*/gm, '  • ')}\n\n---\nGerado automaticamente pelo motor de IA Sentinel.`;
       
       setInsightsText(formattedInsights);
       setInsightsOpen(true);
@@ -219,18 +206,18 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
   }
   
   if (loading) return (
-    <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh] gap-4">
+    <div className={`p-10 text-center flex flex-col items-center justify-center min-h-[60vh] gap-4 ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
       <RefreshCw className="animate-spin text-indigo-600 h-10 w-10" />
-      <p className="font-black uppercase tracking-widest text-[10px] text-slate-400">Sincronizando Sentinel...</p>
+      <p className="font-black uppercase tracking-widest text-[10px]">Sincronizando Sentinel...</p>
     </div>
   );
 
   if (!data) return <div className="p-10 text-center text-rose-500 font-black">FALHA NA CONEXÃO COM O SERVIDOR.</div>;
 
   return (
-    <div className="space-y-8 pb-10 relative">
+    <div className={`space-y-8 pb-10 relative transition-colors duration-300`}>
       
-      {/* --- NOVA FEATURE: NOTIFICAÇÃO FLOATING --- */}
+      {/* NOTIFICAÇÃO FLOATING */}
       {newAlert && (
         <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="bg-indigo-600 text-white px-6 py-4 rounded-[2rem] shadow-2xl shadow-indigo-500/50 flex items-center gap-4 border border-indigo-400">
@@ -244,40 +231,25 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           </div>
         </div>
       )}
-      {/* ------------------------------------------ */}
 
       {/* PAINEL DE FILTROS */}
-      <section className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <section className={`rounded-[2rem] border overflow-hidden transition-all ${
+        darkMode ? "bg-slate-900 border-slate-800 shadow-none" : "bg-white border-slate-100 shadow-xl shadow-slate-200/50"
+      }`}>
         <FiltersPanel filters={filters} setFilters={setFilters} setores={setores} epis={epis} />
       </section>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KpiCard 
-          label="Total de Entregas" 
-          value={data.kpis.totalEntregas} 
-          color="indigo" 
-          icon={<ClipboardList size={24} />}
-          trend="Fluxo Ativo"
-        />
-        <KpiCard 
-          label="Unidades Distribuídas" 
-          value={data.kpis.totalUnidades} 
-          color="emerald" 
-          icon={<PackageSearch size={24} />}
-          trend="Monitorado"
-        />
-        <KpiCard 
-          label="Itens em Crítico" 
-          value={data.estoqueCritico.length} 
-          color="rose" 
-          icon={<AlertOctagon size={24} />}
-          trend="Urgência"
-        />
+        <KpiCard label="Total de Entregas" value={data.kpis.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend="Fluxo Ativo" />
+        <KpiCard label="Unidades Distribuídas" value={data.kpis.totalUnidades} color="emerald" icon={<PackageSearch size={24} />} trend="Monitorado" />
+        <KpiCard label="Itens em Crítico" value={data.estoqueCritico.length} color="rose" icon={<AlertOctagon size={24} />} trend="Urgência" />
       </div>
 
       {/* BARRA DE IA E AÇÕES */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-6 rounded-[2rem] shadow-2xl">
+      <div className={`flex flex-wrap items-center justify-between gap-4 p-6 rounded-[2rem] shadow-2xl transition-colors ${
+        darkMode ? "bg-slate-900 border border-slate-800" : "bg-slate-950"
+      }`}>
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/40">
             <BrainCircuit size={24} />
@@ -292,37 +264,27 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <button onClick={loadDashboard} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 border border-slate-700">
             <RefreshCw size={14} /> Atualizar
           </button>
-
-          <button 
-            onClick={handleGenerateInsights} 
-            disabled={insightsLoading}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2"
-          >
+          <button onClick={handleGenerateInsights} disabled={insightsLoading} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2">
             {insightsLoading ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} />} 
             {insightsLoading ? "Analisando..." : "Gerar Insights"}
           </button>
-
-          <button 
-            onClick={() => handleForecast(filters.epiId || epis[0]?._id)} 
-            disabled={forecastLoading}
-            className="bg-amber-500 hover:bg-amber-400 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2"
-          >
+          <button onClick={() => handleForecast(filters.epiId || epis[0]?._id)} disabled={forecastLoading} className="bg-amber-500 hover:bg-amber-400 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center gap-2">
             <ForecastIcon size={14} /> {forecastLoading ? "Calculando..." : "Previsão IA"}
           </button>
         </div>
       </div>
 
-      {/* GRÁFICOS */}
+      {/* GRÁFICOS - Ajustado cores para Dark Mode */}
       <div className="grid lg:grid-cols-2 gap-8">
         <Card title="Evolução de Consumo">
           <div className="h-[320px] w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 'bold'}} />
-                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
-                <Line type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={4} dot={{r: 4, fill: '#6366f1', strokeWidth: 2, stroke: '#fff'}} activeDot={{r: 8}} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#1e293b" : "#f1f5f9"} />
+                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: darkMode ? "#64748b" : "#94a3b8", fontSize: 10, fontWeight: 'bold'}} />
+                <YAxis axisLine={false} tickLine={false} tick={{fill: darkMode ? "#64748b" : "#94a3b8", fontSize: 10, fontWeight: 'bold'}} />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#0f172a' : '#fff', color: darkMode ? '#f8fafc' : '#1e293b', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                <Line type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={4} dot={{r: 4, fill: '#6366f1', strokeWidth: 2, stroke: darkMode ? '#0f172a' : '#fff'}} activeDot={{r: 8}} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -332,20 +294,10 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie 
-                  data={pieData} 
-                  dataKey="total" 
-                  nameKey="name" 
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius={70} 
-                  outerRadius={100} 
-                  paddingAngle={8}
-                  cornerRadius={10}
-                >
+                <Pie data={pieData} dataKey="total" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8} cornerRadius={10}>
                   {pieData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} stroke="none" />)}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#0f172a' : '#fff', color: darkMode ? '#f8fafc' : '#1e293b'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -358,12 +310,14 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <Card title="Ranking de Requisições">
             <div className="mt-4 space-y-2">
               {data.rankingColabs.map((r, i) => (
-                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all border border-transparent hover:border-slate-100">
+                <div key={i} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
+                  darkMode ? "bg-slate-800/40 hover:bg-slate-800 border-transparent hover:border-slate-700" : "bg-slate-50 hover:bg-white border-transparent hover:border-slate-100"
+                }`}>
                   <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 flex items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-black text-slate-500">
+                    <div className={`h-8 w-8 flex items-center justify-center rounded-xl text-[10px] font-black ${darkMode ? "bg-slate-700 text-slate-400" : "bg-slate-200 text-slate-500"}`}>
                       {i === 0 ? <Award size={14} className="text-amber-500" /> : `#${i+1}`}
                     </div>
-                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm uppercase tracking-tight">{r._id}</span>
+                    <span className={`font-bold text-sm uppercase tracking-tight ${darkMode ? "text-slate-200" : "text-slate-700"}`}>{r._id}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-black text-indigo-600">{r.total}</span>
@@ -379,21 +333,23 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
           <Card title="Status de Suprimentos">
             <div className="mt-4 space-y-3">
               {data.estoqueCritico.length === 0 ? (
-                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-8 rounded-[2rem] text-center border border-emerald-100 dark:border-emerald-900/30">
+                <div className={`p-8 rounded-[2rem] text-center border ${darkMode ? "bg-emerald-900/10 border-emerald-900/30" : "bg-emerald-50 border-emerald-100"}`}>
                   <div className="h-12 w-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-200">
                     <CheckCircle2 size={24} />
                   </div>
-                  <p className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest leading-tight">Operação Segura<br/>Sem Rupturas</p>
+                  <p className={`text-[10px] font-black uppercase tracking-widest leading-tight ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>Operação Segura<br/>Sem Rupturas</p>
                 </div>
               ) : (
                 data.estoqueCritico.map((epi) => (
-                  <div key={epi._id} className="p-4 bg-rose-300 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center justify-between">
+                  <div key={epi._id} className={`p-4 border rounded-2xl flex items-center justify-between ${
+                    darkMode ? "bg-rose-900/10 border-rose-900/30" : "bg-rose-50 border-rose-100"
+                  }`}>
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-rose-500 rounded-lg text-white shadow-lg">
                         <AlertTriangle size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-rose-900 dark:text-rose-200 uppercase tracking-tighter leading-none mb-1">{epi.nome}</p>
+                        <p className={`text-[10px] font-black uppercase tracking-tighter leading-none mb-1 ${darkMode ? "text-rose-200" : "text-rose-900"}`}>{epi.nome}</p>
                         <p className="text-xs font-black text-rose-600 uppercase">Qtd: {epi.estoque}</p>
                       </div>
                     </div>
