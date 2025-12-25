@@ -123,7 +123,7 @@ export default function DashboardAdvanced() {
     
     socketRef.current = io(SOCKET_URL);
     
-    const handler = (payload: any) => {
+    const handler = (_payload: any) => {
       const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
       audio.volume = 0.7;
       audio.play().catch(_e => console.warn("Áudio bloqueado."));
