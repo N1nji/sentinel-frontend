@@ -297,7 +297,7 @@ export default function DashboardAdvanced() {
                 <Pie data={pieData} dataKey="total" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8} cornerRadius={10}>
                   {pieData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} stroke="none" />)}
                 </Pie>
-                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#0f172a' : '#fff', color: darkMode ? '#f8fafc' : '#1e293b'}} />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#0f172a' : '#fff', color: darkMode ? '#f8fafc' : '#f8fafc'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
