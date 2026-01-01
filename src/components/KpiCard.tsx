@@ -1,13 +1,13 @@
-// src/components/KpiCard.tsx
-import type { ReactNode } from "react";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
+// 1. Mude a importação para ser usada diretamente
+import { type ReactNode } from "react"; 
+import { useTheme } from "../context/ThemeContext";
 
 interface KpiCardProps {
   label: string;
   value: number | string;
-  icon: ReactNode;
+  icon: ReactNode; // 2. Use a importação aqui (sem o "React.")
   color?: "indigo" | "rose" | "emerald" | "amber" | "blue";
-  trend?: string;
+  trend?: ReactNode; // 3. Mude de 'string' para 'ReactNode' 🔹
 }
 
 export default function KpiCard({
@@ -17,9 +17,8 @@ export default function KpiCard({
   color = "indigo",
   trend,
 }: KpiCardProps) {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
+  const { darkMode } = useTheme();
   
-  // Mapeamento de cores mantido, usando o darkMode para controlar as sombras
   const colorVariants = {
     indigo: `from-indigo-600 to-indigo-700 ${darkMode ? "shadow-none" : "shadow-indigo-200"}`,
     rose: `from-rose-500 to-rose-600 ${darkMode ? "shadow-none" : "shadow-rose-200"}`,
@@ -38,7 +37,6 @@ export default function KpiCard({
       min-h-[160px] group
     `}>
       
-      {/* Círculo de Luz Decorativo ao fundo */}
       <div className="absolute -right-4 -top-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all" />
 
       <div className="flex justify-between items-start z-10">
@@ -47,9 +45,11 @@ export default function KpiCard({
         </div>
         
         {trend && (
-          <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white uppercase tracking-widest">
+          // Removi o "uppercase" e o "font-black" fixo para que o elemento 
+          // que você passar no Dashboard controle o próprio estilo se quiser
+          <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white tracking-widest flex items-center gap-1">
             {trend}
-          </span>
+          </div>
         )}
       </div>
 

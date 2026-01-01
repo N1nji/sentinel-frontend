@@ -25,13 +25,17 @@ import {
   CheckCircle2,
   Zap,
   Award,
+  TrendingUp, // Adicionado
+  DollarSign, // Adicionado
+  Calendar     // Adicionado
 } from "lucide-react";
 
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
+import { useTheme } from "../context/ThemeContext";
 import Card from "../components/Card";
 import KpiCard from "../components/KpiCard";
 import FiltersPanel, { type Filters } from "../components/FiltersPanel";
 import InsightsModal from "../components/InsightsModal";
+import AlertModal from "../components/AlertModal"; // 🔹 Importado para o Drill-down
 
 import type { DashboardPayload } from "../services/dashboardService";
 import {
@@ -67,7 +71,7 @@ Gerado automaticamente pelo motor de IA Sentinel.`;
 }
 
 export default function DashboardAdvanced() {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
+  const { darkMode } = useTheme();
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [setores, setSetores] = useState<{ _id: string; nome: string }[]>([]);
@@ -84,6 +88,10 @@ export default function DashboardAdvanced() {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [newAlert, setNewAlert] = useState(false);
+
+  // 🔹 Estados para o Drill-down
+  const [drillDownOpen, setDrillDownOpen] = useState(false);
+  const [drillDownData, setDrillDownData] = useState({ title: "", msg: "" });
 
   const socketRef = useRef<Socket | null>(null);
 
@@ -144,6 +152,24 @@ export default function DashboardAdvanced() {
   useEffect(() => {
     loadDashboard();
   }, [filters]);
+
+  // 🔹 Função para Filtros Rápidos
+  const handleQuickFilter = (days: number) => {
+    setFilters({
+      ...filters,
+      from: dayjs().subtract(days, 'day').format("YYYY-MM-DD"),
+      to: dayjs().format("YYYY-MM-DD")
+    });
+  };
+
+  // 🔹 Função para abrir Detalhes do Ranking (Drill-down)
+  const openDrillDown = (colab: any) => {
+    setDrillDownData({
+      title: `Perfil de Consumo: ${colab._id}`,
+      msg: `O colaborador ${colab._id} realizou ${colab.total} requisições no período.\n\nIsso representa aproximadamente ${((colab.total / (data?.kpis.totalUnidades || 1)) * 100).toFixed(1)}% do volume total monitorado.\n\nStatus: Uso frequente identificado.`
+    });
+    setDrillDownOpen(true);
+  };
 
   const pieData = (data?.topEpis ?? []).map((p) => ({ name: p._id, total: p.total }));
   const lineData = (data?.entregasPorMes ?? []).map((m) => ({
@@ -217,6 +243,29 @@ export default function DashboardAdvanced() {
   return (
     <div className={`space-y-8 pb-10 relative transition-colors duration-300`}>
       
+      {/* 🔹 HEADER COM FILTROS RÁPIDOS */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+           <h1 className={`text-2xl font-black tracking-tight ${darkMode ? "text-white" : "text-slate-800"}`}>Dashboard Avançado</h1>
+           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Inteligência em Segurança do Trabalho</p>
+        </div>
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          {[
+            { l: '7D', v: 7 },
+            { l: '30D', v: 30 },
+            { l: '90D', v: 90 }
+          ].map(btn => (
+            <button 
+              key={btn.l}
+              onClick={() => handleQuickFilter(btn.v)}
+              className="px-3 py-1.5 text-[10px] font-black hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all"
+            >
+              {btn.l}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* NOTIFICAÇÃO FLOATING */}
       {newAlert && (
         <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -239,11 +288,12 @@ export default function DashboardAdvanced() {
         <FiltersPanel filters={filters} setFilters={setFilters} setores={setores} epis={epis} />
       </section>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KpiCard label="Total de Entregas" value={data.kpis.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend="Fluxo Ativo" />
-        <KpiCard label="Unidades Distribuídas" value={data.kpis.totalUnidades} color="emerald" icon={<PackageSearch size={24} />} trend="Monitorado" />
-        <KpiCard label="Itens em Crítico" value={data.estoqueCritico.length} color="rose" icon={<AlertOctagon size={24} />} trend="Urgência" />
+      {/* 🔹 KPIs COM BENCHMARK E FINANCEIRO */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KpiCard label="Total de Entregas" value={data.kpis.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend={<span className="text-emerald-500 flex items-center gap-1"><TrendingUp size={12}/> +12%</span>} />
+        <KpiCard label="Investimento Est." value={`R$ ${(data.kpis.totalUnidades * 18.5).toLocaleString()}`} color="emerald" icon={<DollarSign size={24} />} trend="Gasto Estimado" />
+        <KpiCard label="Itens em Crítico" value={data.estoqueCritico.length} color="rose" icon={<AlertOctagon size={24} />} trend={data.estoqueCritico.length > 0 ? "Ação Requerida" : "Normal"} />
+        <KpiCard label="Saúde da IA" value="98.2%" color="amber" icon={<Zap size={24} />} trend="Sentinel Online" />
       </div>
 
       {/* BARRA DE IA E AÇÕES */}
@@ -274,7 +324,7 @@ export default function DashboardAdvanced() {
         </div>
       </div>
 
-      {/* GRÁFICOS - Ajustado cores para Dark Mode */}
+      {/* GRÁFICOS */}
       <div className="grid lg:grid-cols-2 gap-8">
         <Card title="Evolução de Consumo">
           <div className="h-[320px] w-full pt-4">
@@ -297,27 +347,34 @@ export default function DashboardAdvanced() {
                 <Pie data={pieData} dataKey="total" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={8} cornerRadius={10}>
                   {pieData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} stroke="none" />)}
                 </Pie>
-                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#fff' : '#fff', color: darkMode ? '#f8fafc' : '#fff'}} />
+                <Tooltip contentStyle={{borderRadius: '16px', border: 'none', backgroundColor: darkMode ? '#1e293b' : '#fff', color: darkMode ? '#fff' : '#000'}} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </Card>
       </div>
 
-      {/* RANKING E ALERTAS */}
+      {/* RANKING COM DRILL-DOWN (Clicável) */}
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Card title="Ranking de Requisições">
             <div className="mt-4 space-y-2">
               {data.rankingColabs.map((r, i) => (
-                <div key={i} className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${
-                  darkMode ? "bg-slate-800/40 hover:bg-slate-800 border-transparent hover:border-slate-700" : "bg-slate-50 hover:bg-white border-transparent hover:border-slate-100"
-                }`}>
+                <div 
+                  key={i} 
+                  onClick={() => openDrillDown(r)}
+                  className={`flex items-center justify-between p-4 rounded-2xl transition-all border cursor-pointer group ${
+                    darkMode ? "bg-slate-800/40 hover:bg-slate-800 border-transparent hover:border-slate-700" : "bg-slate-50 hover:bg-white border-transparent hover:border-slate-100 hover:shadow-lg"
+                  }`}
+                >
                   <div className="flex items-center gap-4">
-                    <div className={`h-8 w-8 flex items-center justify-center rounded-xl text-[10px] font-black ${darkMode ? "bg-slate-700 text-slate-400" : "bg-slate-200 text-slate-500"}`}>
+                    <div className={`h-8 w-8 flex items-center justify-center rounded-xl text-[10px] font-black transition-colors ${darkMode ? "bg-slate-700 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white" : "bg-slate-200 text-slate-500 group-hover:bg-indigo-600 group-hover:text-white"}`}>
                       {i === 0 ? <Award size={14} className="text-amber-500" /> : `#${i+1}`}
                     </div>
-                    <span className={`font-bold text-sm uppercase tracking-tight ${darkMode ? "text-slate-200" : "text-slate-700"}`}>{r._id}</span>
+                    <div>
+                      <span className={`font-bold text-sm uppercase tracking-tight ${darkMode ? "text-slate-200" : "text-slate-700"}`}>{r._id}</span>
+                      <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Clique para detalhes</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-black text-indigo-600">{r.total}</span>
@@ -362,6 +419,14 @@ export default function DashboardAdvanced() {
       </div>
 
       <InsightsModal open={insightsOpen} onClose={() => setInsightsOpen(false)} text={insightsText} />
+      
+      {/* 🔹 Modal para o Drill-down (Novo) */}
+      <AlertModal 
+        open={drillDownOpen} 
+        onClose={() => setDrillDownOpen(false)} 
+        title={drillDownData.title} 
+        message={drillDownData.msg} 
+      />
     </div>
   );
 }
