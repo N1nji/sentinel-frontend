@@ -154,6 +154,35 @@ export default function Riscos() {
         </button>
       </div>
 
+      {/* STATS CARDS */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Total de Riscos</p>
+        <div className="flex items-end gap-2">
+          <span className="text-2xl font-black text-slate-900 dark:text-white">{riscos.length}</span>
+          <span className="text-[10px] font-bold text-emerald-500 mb-1">Mapeados</span>
+        </div>
+      </div>
+
+      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Filtro Atual</p>
+        <div className="flex items-end gap-2">
+          <span className="text-2xl font-black text-rose-500">{filtrados.length}</span>
+          <span className="text-[10px] font-bold text-slate-400 mb-1">Encontrados</span>
+        </div>
+      </div>
+
+      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Status Ativo</p>
+        <div className="flex items-end gap-2">
+          <span className="text-2xl font-black text-amber-500">
+            {riscos.filter(r => r.status === 'ativo').length}
+          </span>
+          <span className="text-[10px] font-bold text-slate-400 mb-1">Em Aberto</span>
+        </div>
+      </div>
+    </div>
+
       {/* TOOLBAR */}
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
         <div className="relative w-full sm:max-w-md">
@@ -164,7 +193,7 @@ export default function Riscos() {
             className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white pl-12 pr-4 py-3 rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all shadow-sm"
             value={busca}
             onChange={(e) => { setBusca(e.target.value); setPaginaAtual(1); }}
-          />
+          />  
         </div>
 
         <button
