@@ -4,8 +4,8 @@ import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import IAModal from "../components/IASelectModal";
-import { useTheme } from "../context/ThemeContext";
-import { SparklesIcon, MagnifyingGlassIcon, ChartBarIcon } from "@heroicons/react/24/solid"; // IMPORTADOS
+import { useTheme } from "../context/ThemeContext"; 
+import { SparklesIcon, MagnifyingGlassIcon, ChartBarIcon } from "@heroicons/react/24/solid"; 
 import jsPDF from "jspdf";
 import { io } from "socket.io-client";
 
@@ -76,7 +76,12 @@ export default function Entregas() {
   const sigPadDevolucaoRef = useRef<any>(null);
 
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
-  const [busca, setBusca] = useState(""); // NOVO ESTADO
+  const [busca, setBusca] = useState("");
+  
+  // PAGINAÇÃO
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const itensPorPagina = 8;
+
   const [isAdmin, setIsAdmin] = useState(false); 
   const token = localStorage.getItem("token");
 
@@ -130,8 +135,8 @@ export default function Entregas() {
     return () => { socket.off("nova_entrega"); };
   }, []);
 
-  // --- LÓGICA DE FILTRAGEM E BUSCA ---
-  const entregasExibidas = useMemo(() => {
+  // --- LÓGICA DE FILTRAGEM, BUSCA E PAGINAÇÃO ---
+  const filtrados = useMemo(() => {
     return entregas.filter(en => {
       const matchStatus = 
         filtroStatus === "todos" ? true :
@@ -146,7 +151,9 @@ export default function Entregas() {
     });
   }, [entregas, filtroStatus, busca]);
 
-  // --- ESTATÍSTICAS RÁPIDAS ---
+  const totalPaginas = Math.ceil(filtrados.length / itensPorPagina);
+  const entregasExibidas = filtrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
+
   const stats = {
     total: entregas.length,
     ativos: entregas.filter(e => !e.devolvida).length,
@@ -328,7 +335,7 @@ export default function Entregas() {
         </div>
       </div>
 
-      {/* CARDS DE RESUMO (ADICIONADO) */}
+      {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
           { label: "Total Registros", value: stats.total, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -347,7 +354,7 @@ export default function Entregas() {
         ))}
       </div>
 
-      {/* FILTROS E BUSCA (AJUSTADO) */}
+      {/* FILTROS E BUSCA */}
       <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
         <div className="relative w-full md:flex-1">
           <MagnifyingGlassIcon className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -358,7 +365,7 @@ export default function Entregas() {
               darkMode ? 'bg-slate-900 border-slate-800 text-white focus:border-blue-500' : 'bg-white border-gray-200 focus:border-blue-500'
             }`}
             value={busca}
-            onChange={(e) => setBusca(e.target.value)}
+            onChange={(e) => { setBusca(e.target.value); setPaginaAtual(1); }}
           />
         </div>
 
@@ -367,9 +374,9 @@ export default function Entregas() {
             <FunnelIcon className="h-4 w-4" />
             <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
           </div>
-          <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'todos' ? (darkMode ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white shadow-md') : (darkMode ? 'bg-slate-900 text-slate-400 border border-slate-800' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100')}`}>Todos</button>
-          <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-emerald-500 border border-emerald-900/50' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50')}`}>Somente Ativos</button>
-          <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-blue-500 border border-blue-900/50' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50')}`}>Devolvidos</button>
+          <button onClick={() => { setFiltroStatus("todos"); setPaginaAtual(1); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'todos' ? (darkMode ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white shadow-md') : (darkMode ? 'bg-slate-900 text-slate-400 border border-slate-800' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100')}`}>Todos</button>
+          <button onClick={() => { setFiltroStatus("ativos"); setPaginaAtual(1); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-emerald-500 border border-emerald-900/50' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50')}`}>Ativos</button>
+          <button onClick={() => { setFiltroStatus("devolvidos"); setPaginaAtual(1); }} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-blue-500 border border-blue-900/50' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50')}`}>Devolvidos</button>
         </div>
       </div>
 
@@ -445,9 +452,35 @@ export default function Entregas() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINAÇÃO (NOVO) */}
+        <div className={`px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center gap-4 ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50/30 border-slate-50"}`}>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Página <span className="text-blue-600">{paginaAtual}</span> de {totalPaginas || 1}
+          </span>
+          <div className="flex gap-2">
+            <button
+              disabled={paginaAtual === 1}
+              onClick={() => setPaginaAtual(p => p - 1)}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all border ${
+                darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-200 text-slate-600 hover:bg-white shadow-sm"
+              } disabled:opacity-20`}
+            >
+              Anterior
+            </button>
+            <button
+              disabled={paginaAtual === totalPaginas || totalPaginas === 0}
+              onClick={() => setPaginaAtual(p => p + 1)}
+              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all border ${
+                darkMode ? "border-slate-700 text-slate-300 hover:bg-slate-800" : "border-slate-200 text-slate-600 hover:bg-white shadow-sm"
+              } disabled:opacity-20`}
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* OS MODAIS CONTINUAM EXATAMENTE IGUAIS ABAIXO... */}
       {/* MODAL NOVA ENTREGA */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
         <form onSubmit={handleSubmit} className="space-y-4">
