@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
-import { useTheme } from "../context/ThemeContext"; // IMPORTANTE: Importando o context
+import { useTheme } from "../context/ThemeContext"; // Importação do Context
 import {
   PencilSquareIcon,
   TrashIcon,
@@ -22,7 +22,7 @@ interface IUsuario {
 }
 
 export default function Usuarios() {
-  const { darkMode } = useTheme(); // Consumindo o estado do tema
+  const { darkMode } = useTheme(); // Agora vamos usar essa variável em todo o código
   const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -87,19 +87,23 @@ export default function Usuarios() {
   const totalPaginas = Math.ceil(ordenados.length / itensPorPagina);
 
   return (
-    <div className="p-1 transition-colors duration-300">
+    <div className={`p-1 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <UserCircleIcon className={`h-8 w-8 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Gestão de Acessos</h1>
+            <h1 className={`text-3xl font-black tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+              Gestão de Acessos
+            </h1>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">{usuarios.length} usuários registrados no sistema</p>
+          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'} font-medium`}>
+            {usuarios.length} usuários registrados no sistema
+          </p>
         </div>
 
         <button
-          className="bg-indigo-600 text-white flex items-center justify-center px-5 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95"
+          className="bg-indigo-600 text-white flex items-center justify-center px-5 py-3 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95"
           onClick={() => {
             setEditingId(null); setNome(""); setEmail(""); setTipo("comum"); setSenhaGerada(""); setOpenModal(true);
           }}
@@ -111,16 +115,20 @@ export default function Usuarios() {
 
       {/* ALERT SENHA GERADA */}
       {senhaGerada && (
-        <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4">
+        <div className={`mb-6 p-4 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4 border ${
+          darkMode ? 'bg-emerald-900/20 border-emerald-800' : 'bg-emerald-50 border-emerald-200'
+        }`}>
           <div className="flex items-center gap-3">
             <div className="bg-emerald-500 p-2 rounded-lg text-white">
               <CheckIcon className="h-5 w-5 stroke-[3]" />
             </div>
             <div>
-              <p className="text-emerald-800 dark:text-emerald-400 text-sm font-bold">Usuário criado com sucesso!</p>
-              <p className="text-emerald-600 dark:text-emerald-500 text-xs">
+              <p className={`text-sm font-bold ${darkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>Usuário criado com sucesso!</p>
+              <p className={`text-xs ${darkMode ? 'text-emerald-500' : 'text-emerald-600'}`}>
                 Senha temporária: 
-                <span className="font-mono bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 ml-1">
+                <span className={`font-mono px-2 py-0.5 rounded border ml-1 ${
+                  darkMode ? 'bg-slate-800 border-emerald-800' : 'bg-white border-emerald-200'
+                }`}>
                   {senhaGerada}
                 </span>
               </p>
@@ -128,7 +136,9 @@ export default function Usuarios() {
           </div>
           <button 
             onClick={handleCopiarSenha}
-            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-800/50 px-4 py-2 rounded-xl transition-colors"
+            className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-xl transition-colors ${
+              darkMode ? 'text-emerald-400 hover:bg-emerald-800/50' : 'text-emerald-700 hover:bg-emerald-100'
+            }`}
           >
             {copiado ? <CheckIcon className="h-4 w-4" /> : <ClipboardDocumentIcon className="h-4 w-4" />}
             {copiado ? "Copiado!" : "Copiar"}
@@ -143,7 +153,9 @@ export default function Usuarios() {
           <input
             type="text"
             placeholder="Pesquisar nome ou e-mail..."
-            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white pl-12 pr-4 py-3 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
+            className={`w-full border pl-12 pr-4 py-3 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm ${
+              darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
@@ -151,7 +163,9 @@ export default function Usuarios() {
 
         <button
           onClick={() => setOrdem(ordem === "asc" ? "desc" : "asc")}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 border px-4 py-3 rounded-2xl font-bold transition-all shadow-sm ${
+            darkMode ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+          }`}
         >
           <ArrowsUpDownIcon className="h-5 w-5 text-slate-400" />
           {ordem === "asc" ? "A-Z" : "Z-A"}
@@ -159,33 +173,39 @@ export default function Usuarios() {
       </div>
 
       {/* TABELA ESTILIZADA */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
+      <div className={`rounded-[2rem] border shadow-xl overflow-hidden ${
+        darkMode ? 'bg-slate-900 border-slate-800 shadow-none' : 'bg-white border-slate-200 shadow-slate-200/50'
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Usuário</th>
-                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Permissão</th>
-                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 text-right">Ações</th>
+              <tr className={`border-b ${darkMode ? 'bg-slate-800/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'}`}>
+                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Usuário</th>
+                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500">Permissão</th>
+                <th className="px-6 py-5 text-xs font-bold uppercase tracking-widest text-slate-500 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+            <tbody className={`divide-y ${darkMode ? 'divide-slate-800' : 'divide-slate-50'}`}>
               {pagina.map((u) => (
-                <tr key={u._id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
+                <tr key={u._id} className={`transition-colors group ${darkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50/80'}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                        darkMode ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-600'
+                      }`}>
                         {u.nome.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800 dark:text-slate-200">{u.nome}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{u.email}</p>
+                        <p className={`font-bold ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>{u.nome}</p>
+                        <p className={`text-xs font-medium ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{u.email}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      u.tipo === "admin" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      u.tipo === "admin" 
+                        ? (darkMode ? "bg-purple-900/30 text-purple-400" : "bg-purple-100 text-purple-700") 
+                        : (darkMode ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-600")
                     }`}>
                       <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${u.tipo === "admin" ? "bg-purple-500" : "bg-slate-400"}`}></div>
                       {u.tipo}
@@ -195,13 +215,13 @@ export default function Usuarios() {
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => { setEditingId(u._id); setNome(u.nome); setEmail(u.email); setTipo(u.tipo); setOpenModal(true); }}
-                        className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl transition-all"
+                        className={`p-2 rounded-xl transition-all ${darkMode ? 'text-slate-400 hover:text-indigo-400 hover:bg-indigo-900/30' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
                       >
                         <PencilSquareIcon className="h-5 w-5" />
                       </button>
                       <button 
                         onClick={() => { setDeleteId(u._id); setOpenDelete(true); }}
-                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-all"
+                        className={`p-2 rounded-xl transition-all ${darkMode ? 'text-slate-400 hover:text-rose-400 hover:bg-rose-900/30' : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'}`}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>
@@ -214,20 +234,26 @@ export default function Usuarios() {
         </div>
         
         {/* RODAPÉ / PAGINAÇÃO */}
-        <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Página {paginaAtual} de {totalPaginas}</p>
+        <div className={`px-6 py-4 border-t flex items-center justify-between ${
+          darkMode ? 'bg-slate-800/50 border-slate-800' : 'bg-slate-50/50 border-slate-100'
+        }`}>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Página {paginaAtual} de {totalPaginas}</p>
           <div className="flex gap-2">
             <button 
               disabled={paginaAtual === 1} 
               onClick={() => setPaginaAtual(p => p - 1)}
-              className="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+              className={`px-4 py-2 text-xs font-bold border rounded-xl disabled:opacity-30 transition-all shadow-sm ${
+                darkMode ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
             >
               Anterior
             </button>
             <button 
               disabled={paginaAtual === totalPaginas} 
               onClick={() => setPaginaAtual(p => p + 1)}
-              className="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+              className={`px-4 py-2 text-xs font-bold border rounded-xl disabled:opacity-30 transition-all shadow-sm ${
+                darkMode ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
             >
               Próxima
             </button>
@@ -239,21 +265,27 @@ export default function Usuarios() {
       <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Editar Usuário" : "Novo Usuário"}>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Nome Completo</label>
-            <input type="text" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" placeholder="Ex: João Silva" value={nome} onChange={(e) => setNome(e.target.value)} required />
+            <label className={`text-[10px] font-black uppercase ml-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Nome Completo</label>
+            <input type="text" className={`w-full border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+              darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+            }`} placeholder="Ex: João Silva" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">E-mail de Acesso</label>
-            <input type="email" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" placeholder="joao@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label className={`text-[10px] font-black uppercase ml-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>E-mail de Acesso</label>
+            <input type="email" className={`w-full border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${
+              darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+            }`} placeholder="joao@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1">Nível de Permissão</label>
-            <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none" value={tipo} onChange={(e) => setTipo(e.target.value as any)} required>
-              <option value="admin" className="dark:bg-slate-900">Administrador (Acesso Total)</option>
-              <option value="comum" className="dark:bg-slate-900">Comum (Acesso Limitado)</option>
+            <label className={`text-[10px] font-black uppercase ml-1 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Nível de Permissão</label>
+            <select className={`w-full border p-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none ${
+              darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+            }`} value={tipo} onChange={(e) => setTipo(e.target.value as any)} required>
+              <option value="admin" className={darkMode ? "bg-slate-900" : ""}>Administrador (Acesso Total)</option>
+              <option value="comum" className={darkMode ? "bg-slate-900" : ""}>Comum (Acesso Limitado)</option>
             </select>
           </div>
-          <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all active:scale-95 mt-4">
+          <button className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition-all active:scale-95 mt-4">
             {editingId ? "Salvar Alterações" : "Criar Usuário"}
           </button>
         </form>
