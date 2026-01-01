@@ -118,7 +118,7 @@ export default function Setores() {
   return (
     <div className="p-2 sm:p-4 animate-in fade-in duration-500">
       
-      {/* HEADER */}
+      {/* CABEÇALHO */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -128,7 +128,7 @@ export default function Setores() {
             </h1>
           </div>
           <p className={`text-sm font-medium ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
-            Organização estrutural da empresa
+            Gerenciamento de áreas e responsabilidades
           </p>
         </div>
 
@@ -147,9 +147,9 @@ export default function Setores() {
       {/* STATS CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: "Total", value: stats.total, color: "text-indigo-600", bg: "bg-indigo-500/10" },
-          { label: "Operacionais", value: stats.ativos, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Desativados", value: stats.inativos, color: "text-rose-500", bg: "bg-rose-500/10" }
+          { label: "Total de Setores", value: stats.total, color: "text-indigo-600", bg: "bg-indigo-500/10" },
+          { label: "Setores Ativos", value: stats.ativos, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Setores Inativos", value: stats.inativos, color: "text-rose-500", bg: "bg-rose-500/10" }
         ].map((item, i) => (
           <div key={i} className={`p-5 rounded-3xl border ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"} shadow-sm`}>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{item.label}</p>
@@ -190,8 +190,8 @@ export default function Setores() {
       </div>
 
       {/* TABELA */}
-      <div className={`rounded-3xl border overflow-hidden transition-all shadow-xl shadow-slate-200/50 ${
-        darkMode ? "bg-slate-900 border-slate-800 shadow-none" : "bg-white border-slate-100"
+      <div className={`rounded-3xl border overflow-hidden transition-all ${
+        darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100 shadow-xl shadow-slate-200/50"
       }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -214,15 +214,16 @@ export default function Setores() {
               ) : pagina.length === 0 ? (
                 <tr><td colSpan={4} className="p-20 text-center font-bold text-slate-400">Nenhum setor encontrado.</td></tr>
               ) : pagina.map((s) => (
-                <tr key={s._id} className={`transition-all group ${darkMode ? "hover:bg-slate-800/40" : "hover:bg-slate-50/50"}`}>
+                <tr key={s._id} className={`transition-all group ${darkMode ? "hover:bg-slate-800/40" : "hover:bg-gray-50/50"}`}>
                   <td className="p-5">
                     <div className={`font-bold ${darkMode ? "text-slate-200" : "text-slate-800"}`}>{s.nome}</div>
-                    <div className="text-xs text-slate-400 line-clamp-1 mt-0.5">{s.descricao || "Sem descrição disponível"}</div>
+                    <div className="text-xs text-slate-400 line-clamp-1 mt-0.5">{s.descricao || "Sem descrição"}</div>
                   </td>
                   <td className="p-5">
                     <div className={`flex items-center gap-2 text-sm font-semibold ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                      <div className="h-6 w-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-[10px] text-indigo-500">
-                        {s.responsavel?.charAt(0) || "U"}
+                      {/* Ícone de Usuário re-adicionado */}
+                      <div className="h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                        <UserIcon className="h-4 w-4" />
                       </div>
                       {s.responsavel || "Não atribuído"}
                     </div>
@@ -233,7 +234,12 @@ export default function Setores() {
                       ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
                       : "bg-slate-500/10 text-slate-500 border-slate-500/20"
                     }`}>
-                      <div className={`h-1.5 w-1.5 rounded-full ${(!s.status || s.status === "ativo") ? "bg-emerald-500 animate-pulse" : "bg-slate-500"}`} />
+                      {/* Ícones de Status re-adicionados */}
+                      {(!s.status || s.status === "ativo") ? (
+                        <CheckCircleIcon className="h-4 w-4" />
+                      ) : (
+                        <XCircleIcon className="h-4 w-4" />
+                      )}
                       {s.status || "ativo"}
                     </span>
                   </td>
@@ -263,7 +269,7 @@ export default function Setores() {
           </table>
         </div>
 
-        {/* PAGINAÇÃO INTEGRADA NA TABELA */}
+        {/* PAGINAÇÃO */}
         <div className={`px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center gap-4 ${darkMode ? "bg-slate-800/30 border-slate-800" : "bg-slate-50/30 border-slate-50"}`}>
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Página <span className="text-indigo-600">{paginaAtual}</span> de {totalPaginas || 1}
@@ -291,55 +297,48 @@ export default function Setores() {
         </div>
       </div>
 
-      {/* MODAL FORM (ADAPTADO) */}
-      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Ajustar Setor" : "Novo Setor"}>
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <div className="space-y-4">
+      {/* MODAL FORM */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Editar Setor" : "Novo Setor"}>
+        <form onSubmit={handleSubmit} className="space-y-5 pt-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Nome do Setor</label>
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Nome do Setor</label>
               <input
                 type="text"
                 className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all ${
                   darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
                 }`}
-                placeholder="Ex: Almoxarifado"
                 value={nome} onChange={(e) => setNome(e.target.value)} required
               />
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Gestor Responsável</label>
-                <input
-                  type="text"
-                  className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all ${
-                    darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
-                  }`}
-                  placeholder="Nome do gestor"
-                  value={responsavel} onChange={(e) => setResponsavel(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Status da Área</label>
-                <select 
-                  value={status} onChange={(e) => setStatus(e.target.value as "ativo" | "inativo")}
-                  className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all appearance-none font-bold ${
-                    darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
-                  }`}
-                >
-                  <option value="ativo">OPERACIONAL (Ativo)</option>
-                  <option value="inativo">DESATIVADO (Inativo)</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Breve Descrição</label>
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Responsável</label>
+              <input
+                type="text"
+                className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all ${
+                  darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                }`}
+                value={responsavel} onChange={(e) => setResponsavel(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Status</label>
+              <select 
+                value={status} onChange={(e) => setStatus(e.target.value as "ativo" | "inativo")}
+                className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all font-bold ${
+                  darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                }`}
+              >
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">Descrição</label>
               <textarea
                 className={`w-full p-4 rounded-2xl mt-1.5 focus:ring-4 focus:ring-indigo-500/10 outline-none border transition-all resize-none ${
                   darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
                 }`}
-                placeholder="Descreva as atividades deste setor..."
                 rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)}
               />
             </div>
@@ -349,7 +348,7 @@ export default function Setores() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50"
           >
-            {loading ? "SALVANDO..." : editingId ? "ATUALIZAR SETOR" : "FINALIZAR CADASTRO"}
+            {loading ? "PROCESSANDO..." : editingId ? "ATUALIZAR SETOR" : "CADASTRAR SETOR"}
           </button>
         </form>
       </Modal>
@@ -357,7 +356,7 @@ export default function Setores() {
       <ConfirmModal
         open={openDelete}
         title="Excluir Setor?"
-        message="Esta ação é permanente. Verifique se não há riscos vinculados a este setor antes de prosseguir."
+        message="Esta ação é permanente. Verifique se não há colaboradores vinculados a este setor antes de prosseguir."
         onClose={() => setOpenDelete(false)}
         onConfirm={() => { if (deleteId) handleDelete(deleteId); }}
       />
