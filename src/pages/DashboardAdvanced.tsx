@@ -25,9 +25,9 @@ import {
   CheckCircle2,
   Zap,
   Award,
-  TrendingUp, // Adicionado
-  DollarSign, // Adicionado
-  Calendar     // Adicionado
+  TrendingUp,
+  DollarSign,
+  Calendar
 } from "lucide-react";
 
 import { useTheme } from "../context/ThemeContext";
@@ -35,7 +35,7 @@ import Card from "../components/Card";
 import KpiCard from "../components/KpiCard";
 import FiltersPanel, { type Filters } from "../components/FiltersPanel";
 import InsightsModal from "../components/InsightsModal";
-import AlertModal from "../components/AlertModal"; // 🔹 Importado para o Drill-down
+import AlertModal from "../components/AlertModal"; 
 
 import type { DashboardPayload } from "../services/dashboardService";
 import {
@@ -89,7 +89,6 @@ export default function DashboardAdvanced() {
   const [forecastLoading, setForecastLoading] = useState(false);
   const [newAlert, setNewAlert] = useState(false);
 
-  // 🔹 Estados para o Drill-down
   const [drillDownOpen, setDrillDownOpen] = useState(false);
   const [drillDownData, setDrillDownData] = useState({ title: "", msg: "" });
 
@@ -153,7 +152,6 @@ export default function DashboardAdvanced() {
     loadDashboard();
   }, [filters]);
 
-  // 🔹 Função para Filtros Rápidos
   const handleQuickFilter = (days: number) => {
     setFilters({
       ...filters,
@@ -162,7 +160,6 @@ export default function DashboardAdvanced() {
     });
   };
 
-  // 🔹 Função para abrir Detalhes do Ranking (Drill-down)
   const openDrillDown = (colab: any) => {
     setDrillDownData({
       title: `Perfil de Consumo: ${colab._id}`,
@@ -243,13 +240,13 @@ export default function DashboardAdvanced() {
   return (
     <div className={`space-y-8 pb-10 relative transition-colors duration-300`}>
       
-      {/* 🔹 HEADER COM FILTROS RÁPIDOS */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
            <h1 className={`text-2xl font-black tracking-tight ${darkMode ? "text-white" : "text-slate-800"}`}>Dashboard Avançado</h1>
            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Inteligência em Segurança do Trabalho</p>
         </div>
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <Calendar size={14} className="self-center mx-2 text-slate-400" /> {/* 🔹 Exemplo de uso do Calendar */}
           {[
             { l: '7D', v: 7 },
             { l: '30D', v: 30 },
@@ -266,7 +263,6 @@ export default function DashboardAdvanced() {
         </div>
       </div>
 
-      {/* NOTIFICAÇÃO FLOATING */}
       {newAlert && (
         <div className="fixed bottom-10 right-10 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="bg-indigo-600 text-white px-6 py-4 rounded-[2rem] shadow-2xl shadow-indigo-500/50 flex items-center gap-4 border border-indigo-400">
@@ -281,22 +277,19 @@ export default function DashboardAdvanced() {
         </div>
       )}
 
-      {/* PAINEL DE FILTROS */}
       <section className={`rounded-[2rem] border overflow-hidden transition-all ${
         darkMode ? "bg-slate-900 border-slate-800 shadow-none" : "bg-white border-slate-100 shadow-xl shadow-slate-200/50"
       }`}>
         <FiltersPanel filters={filters} setFilters={setFilters} setores={setores} epis={epis} />
       </section>
 
-      {/* 🔹 KPIs COM BENCHMARK E FINANCEIRO */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KpiCard label="Total de Entregas" value={data.kpis.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend={<span className="text-emerald-500 flex items-center gap-1"><TrendingUp size={12}/> +12%</span>} />
-        <KpiCard label="Investimento Est." value={`R$ ${(data.kpis.totalUnidades * 18.5).toLocaleString()}`} color="emerald" icon={<DollarSign size={24} />} trend="Gasto Estimado" />
+        <KpiCard label="Itens Monitorados" value={data.kpis.totalUnidades} color="emerald" icon={<PackageSearch size={24} />} trend={<span className="text-white/70">Volume Total</span>} />
+        <KpiCard label="Investimento Est." value={`R$ ${(data.kpis.totalUnidades * 18.5).toLocaleString()}`} color="blue" icon={<DollarSign size={24} />} trend="Financeiro" />
         <KpiCard label="Itens em Crítico" value={data.estoqueCritico.length} color="rose" icon={<AlertOctagon size={24} />} trend={data.estoqueCritico.length > 0 ? "Ação Requerida" : "Normal"} />
-        <KpiCard label="Saúde da IA" value="98.2%" color="amber" icon={<Zap size={24} />} trend="Sentinel Online" />
       </div>
 
-      {/* BARRA DE IA E AÇÕES */}
       <div className={`flex flex-wrap items-center justify-between gap-4 p-6 rounded-[2rem] shadow-2xl transition-colors ${
         darkMode ? "bg-slate-900 border border-slate-800" : "bg-slate-950"
       }`}>
@@ -324,7 +317,6 @@ export default function DashboardAdvanced() {
         </div>
       </div>
 
-      {/* GRÁFICOS */}
       <div className="grid lg:grid-cols-2 gap-8">
         <Card title="Evolução de Consumo">
           <div className="h-[320px] w-full pt-4">
@@ -354,7 +346,6 @@ export default function DashboardAdvanced() {
         </Card>
       </div>
 
-      {/* RANKING COM DRILL-DOWN (Clicável) */}
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Card title="Ranking de Requisições">
@@ -420,7 +411,6 @@ export default function DashboardAdvanced() {
 
       <InsightsModal open={insightsOpen} onClose={() => setInsightsOpen(false)} text={insightsText} />
       
-      {/* 🔹 Modal para o Drill-down (Novo) */}
       <AlertModal 
         open={drillDownOpen} 
         onClose={() => setDrillDownOpen(false)} 
