@@ -55,33 +55,22 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
     }
   }
 
-  async function handleSend() {
+async function handleSend() {
+  // 1. Verificações básicas
   if (!chatId || !input.trim() || loading) return;
 
   const msg = input.trim();
-  setInput("");
-  setLoading(true);
+  setInput(""); // Limpa o campo
+  setLoading(true); // Ativa os "pontinhos" de carregamento
 
   try {
-    // 1. Prepara o histórico ANTES de enviar a nova (para a IA saber o que veio antes)
-    const historicoParaIA = chat?.mensagens?.map((m: any) => ({
-      role: m.role === "user" ? "user" : "assistant",
-      content: m.content
-    })) || [];
+    // 2. CHAMADA ÚNICA
+    // O seu backend já faz tudo: salva o user, busca contexto, chama IA e salva assistant.
+    const res = await enviarMensagem(chatId, msg);
 
-    // 2. Chama a IA com CONTEXTO (a rota nova que a gente fez)
-    // Fazemos isso PRIMEIRO para pegar a resposta certa.
-    const respostaIA = await chatComContext(msg, historicoParaIA);
-
-    // 3. Salva a pergunta do usuário no banco
-    await enviarMensagem(chatId, msg, "user");
-
-    // 4. Salva a resposta da IA que pegamos com contexto no banco
-    // Usamos o role "assistant" para o banco saber que é a IA
-    const resFinal = await enviarMensagem(chatId, respostaIA, "assistant");
-
-    // 5. Atualiza a tela com o chat vindo do banco
-    setChat(resFinal.chat);
+    // 3. ATUALIZA A TELA
+    // O res.chat já vem com as duas mensagens novas (a sua e a da IA)
+    setChat(res.chat);
 
   } catch (err) {
     console.error(err);
