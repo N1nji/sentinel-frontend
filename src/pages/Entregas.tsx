@@ -4,6 +4,7 @@ import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import IAModal from "../components/IASelectModal";
+import { useTheme } from "../context/ThemeContext"; // IMPORTADO
 import { SparklesIcon } from "@heroicons/react/24/solid";
 import jsPDF from "jspdf";
 import { io } from "socket.io-client";
@@ -24,6 +25,7 @@ import {
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 const socket = io(SOCKET_URL, { autoConnect: true });
 
+// ... (Interfaces mantidas iguais)
 interface IEntrega {
   _id: string;
   colaboradorId: { _id: string; nome: string; matricula?: string; };
@@ -49,6 +51,7 @@ interface IEntrega {
 }
 
 export default function Entregas() {
+  const { darkMode } = useTheme(); // CONSUMINDO TEMA
   const [entregas, setEntregas] = useState<IEntrega[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -81,6 +84,7 @@ export default function Entregas() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [openIA, setOpenIA] = useState(false);
 
+  // ... (Lógicas de load, socket, PDF e submit mantidas exatamente como estavam)
   async function load() {
     setLoading(true);
     try {
@@ -174,7 +178,6 @@ export default function Entregas() {
     doc.text(validadeStr, 130, 92);
     doc.text(String(en.quantidade), 175, 92);
 
-    // --- ATUALIZAÇÃO: ADICIONANDO OBSERVAÇÃO TÉCNICA NO PDF ---
     if (en.observacao) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8);
@@ -272,17 +275,17 @@ export default function Entregas() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen relative">
+    <div className={`p-6 max-w-7xl mx-auto min-h-screen relative transition-colors duration-300 ${darkMode ? 'bg-slate-950' : 'bg-gray-50'}`}>
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
 
       {showToast.show && (
-        <div className="fixed top-5 right-5 z-[100] bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-4 animate-bounce">
+        <div className={`fixed top-5 right-5 z-[100] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-4 animate-bounce ${darkMode ? 'bg-slate-900 border-slate-700 text-white' : 'bg-gray-900 border-gray-700 text-white'}`}>
           <div className="bg-emerald-500 p-2 rounded-lg">
             <BellAlertIcon className="h-6 w-6 text-white" />
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Novo Registro</p>
-            <p className="text-sm font-bold text-gray-100">{showToast.msg}</p>
+            <p className="text-sm font-bold">{showToast.msg}</p>
           </div>
         </div>
       )}
@@ -290,16 +293,16 @@ export default function Entregas() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Entregas de EPI</h1>
+          <h1 className={`text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Entregas de EPI</h1>
           <div className="flex items-center gap-2 mt-1">
             <CheckBadgeIcon className="h-5 w-5 text-emerald-500" />
-            <p className="text-gray-500 text-sm font-medium">Controle jurídico e operacional.</p>
+            <p className={`${darkMode ? 'text-slate-400' : 'text-gray-500'} text-sm font-medium`}>Controle jurídico e operacional.</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {alertLowStock && (
-            <div className="bg-rose-100 text-rose-700 px-4 py-2 rounded-xl border border-rose-200 text-xs font-black flex items-center gap-2 animate-pulse">
+            <div className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-800 text-xs font-black flex items-center gap-2 animate-pulse">
               <ExclamationTriangleIcon className="h-4 w-4" /> ATENÇÃO: {alertLowStock}
             </div>
           )}
@@ -315,17 +318,17 @@ export default function Entregas() {
           <FunnelIcon className="h-4 w-4" />
           <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
         </div>
-        <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>Todos</button>
-        <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50'}`}>Somente Ativos</button>
-        <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50'}`}>Devolvidos</button>
+        <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? (darkMode ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white shadow-md') : (darkMode ? 'bg-slate-900 text-slate-400 border border-slate-800' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100')}`}>Todos</button>
+        <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-emerald-500 border border-emerald-900/50' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50')}`}>Somente Ativos</button>
+        <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-blue-500 border border-blue-900/50' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50')}`}>Devolvidos</button>
       </div>
 
       {/* TABELA */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className={`rounded-2xl shadow-sm border overflow-hidden transition-colors ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 text-[10px] font-black uppercase tracking-widest">
+              <tr className={`${darkMode ? 'bg-slate-800/50' : 'bg-gray-50'} border-b ${darkMode ? 'border-slate-800' : 'border-gray-200'} text-gray-400 text-[10px] font-black uppercase tracking-widest`}>
                 <th className="p-4">Colaborador / Equipamento</th>
                 <th className="p-4 text-center">Qtd</th>
                 <th className="p-4">Data / CA</th>
@@ -333,18 +336,17 @@ export default function Entregas() {
                 <th className="p-4 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className={`divide-y ${darkMode ? 'divide-slate-800' : 'divide-gray-100'}`}>
               {entregasFiltradas.map(en => {
                 const isCAVencido = en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca) < new Date() : false;
                 return (
-                  <tr key={en._id} className="hover:bg-blue-50/20 transition-all group">
+                  <tr key={en._id} className={`transition-all group ${darkMode ? 'hover:bg-blue-900/10' : 'hover:bg-blue-50/20'}`}>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-800">{en.colaboradorId?.nome}</span>
-                        <span className="text-xs text-blue-600 flex items-center gap-1 font-medium">
+                        <span className={`font-bold ${darkMode ? 'text-slate-200' : 'text-gray-800'}`}>{en.colaboradorId?.nome}</span>
+                        <span className={`text-xs flex items-center gap-1 font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
                           <InformationCircleIcon className="h-3.5 w-3.5" /> {en.epiSnapshot?.nome || en.epiId?.nome}
                         </span>
-                        {/* ATUALIZAÇÃO: MOSTRANDO OBSERVAÇÃO NA TABELA */}
                         {en.observacao && (
                           <p className="text-[10px] text-gray-400 italic mt-1 max-w-[250px] truncate" title={en.observacao}>
                             "{en.observacao}"
@@ -353,11 +355,11 @@ export default function Entregas() {
                       </div>
                     </td>
                     <td className="p-4 text-center">
-                      <span className="bg-gray-100 px-2 py-1 rounded-md text-xs font-bold text-gray-600">{en.quantidade}</span>
+                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${darkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-600'}`}>{en.quantidade}</span>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col text-[11px]">
-                        <span className="text-gray-600 font-bold tracking-tight flex items-center gap-1">
+                        <span className={`font-bold tracking-tight flex items-center gap-1 ${darkMode ? 'text-slate-400' : 'text-gray-600'}`}>
                           <CalendarDaysIcon className="h-3.5 w-3.5 text-gray-400" />
                           {new Date(en.dataEntrega).toLocaleDateString()}
                         </span>
@@ -367,18 +369,18 @@ export default function Entregas() {
                       </div>
                     </td>
                     <td className="p-4 text-center">
-                      <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${en.devolvida ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                      <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase ${en.devolvida ? (darkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-100 text-blue-700') : (darkMode ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-100 text-emerald-700')}`}>
                         {en.devolvida ? 'Devolvido' : 'Ativo'}
                       </span>
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-1">
-                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600"><ArrowDownTrayIcon className="h-5 w-5"/></button>
+                        <button onClick={() => generatePdfReceipt(en)} className="p-2 text-gray-400 hover:text-blue-600 transition-colors"><ArrowDownTrayIcon className="h-5 w-5"/></button>
                         {!en.devolvida && (
-                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
+                          <button onClick={() => { setDevolucaoEntrega(en); setOpenDevolucao(true);}} className="p-2 text-gray-400 hover:text-orange-600 transition-colors"><ArrowPathRoundedSquareIcon className="h-5 w-5"/></button>
                         )}
                         {isAdmin && (
-                          <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600"><TrashIcon className="h-5 w-5"/></button>
+                          <button onClick={() => { setDeleteId(en._id); setOpenDelete(true); }} className="p-2 text-gray-400 hover:text-red-600 transition-colors"><TrashIcon className="h-5 w-5"/></button>
                         )}
                       </div>
                     </td>
@@ -394,41 +396,45 @@ export default function Entregas() {
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className="w-full border-gray-300 rounded-xl">
+            <select value={colaboradorId} onChange={e => setColaboradorId(e.target.value)} required className={`w-full rounded-xl transition-colors border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-gray-300'}`}>
               <option value="">Selecione Colaborador</option>
-              {colaboradores.map(c => <option key={c._id} value={c._id}>{c.nome}</option>)}
+              {colaboradores.map(c => <option key={c._id} value={c._id} className={darkMode ? 'bg-slate-800' : ''}>{c.nome}</option>)}
             </select>
-            <select value={epiId} onChange={e => setEpiId(e.target.value)} required className="w-full border-gray-300 rounded-xl">
+            <select value={epiId} onChange={e => setEpiId(e.target.value)} required className={`w-full rounded-xl transition-colors border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-gray-300'}`}>
               <option value="">Selecione EPI</option>
-              {epis.map(ep => <option key={ep._id} value={ep._id}>{ep.nome}</option>)}
+              {epis.map(ep => <option key={ep._id} value={ep._id} className={darkMode ? 'bg-slate-800' : ''}>{ep.nome}</option>)}
             </select>
           </div>
           <div className="flex gap-2">
-            <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className="w-24 border-gray-300 rounded-xl" required />
+            <input type="number" min={1} value={quantidade} onChange={e => setQuantidade(Number(e.target.value))} className={`w-24 rounded-xl transition-colors border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-gray-300'}`} required />
             <div className="flex-1 relative">
-            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className="w-full border-gray-300 rounded-xl pr-10" />
-            <button type="button" onClick={() => setOpenIA(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors" title="Consultar Sentinel IA">
+            <input type="text" value={observacao} onChange={e => setObservacao(e.target.value)} placeholder="Observação..." className={`w-full rounded-xl pr-10 transition-colors border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-gray-300'}`} />
+            <button type="button" onClick={() => setOpenIA(true)} className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-purple-200 transition-colors ${darkMode ? 'bg-purple-900/40 text-purple-400' : 'bg-purple-100 text-purple-600'}`} title="Consultar Sentinel IA">
               <SparklesIcon className="h-5 w-5" />
             </button>
           </div>
         </div>
-          <div ref={canvasContainerRef} className="border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 h-[200px] relative">
-            <SignaturePad ref={sigPadRef} canvasProps={{ className: "w-full h-full" }} />
-            <button type="button" onClick={() => sigPadRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
+          <div ref={canvasContainerRef} className={`border-2 border-dashed rounded-2xl h-[200px] relative transition-colors ${darkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-gray-50'}`}>
+            <SignaturePad 
+              ref={sigPadRef} 
+              canvasProps={{ className: "w-full h-full" }} 
+              penColor={darkMode ? "#cbd5e1" : "#000"} 
+            />
+            <button type="button" onClick={() => sigPadRef.current.clear()} className={`absolute top-2 right-2 px-2 py-1 text-[9px] rounded border ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>Limpar</button>
           </div>
-          <button disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs">
+          <button disabled={loading} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs hover:bg-blue-700 transition-all active:scale-95">
             {loading ? "Registrando..." : "Confirmar Entrega"}
           </button>
         </form>
       </Modal>
 
-      {/* ATUALIZAÇÃO: MODAL DE DEVOLUÇÃO COM INFO DO ITEM */}
+      {/* MODAL DE DEVOLUÇÃO */}
       <Modal open={openDevolucao} onClose={() => setOpenDevolucao(false)} title="Confirmar Devolução">
         <div className="space-y-4">
           {devolucaoEntrega && (
-            <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-2">
-              <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Colaborador / Item</p>
-              <p className="text-sm font-bold text-gray-800">{devolucaoEntrega.colaboradorId?.nome}</p>
+            <div className={`p-4 rounded-2xl mb-2 border transition-colors ${darkMode ? 'bg-orange-950/20 border-orange-900/50' : 'bg-orange-50 border-orange-100'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${darkMode ? 'text-orange-500' : 'text-orange-400'}`}>Colaborador / Item</p>
+              <p className={`text-sm font-bold ${darkMode ? 'text-slate-200' : 'text-gray-800'}`}>{devolucaoEntrega.colaboradorId?.nome}</p>
               <p className="text-xs text-orange-600 font-medium">
                 {devolucaoEntrega.epiSnapshot?.nome || devolucaoEntrega.epiId?.nome} ({devolucaoEntrega.quantidade} un)
               </p>
@@ -440,17 +446,21 @@ export default function Entregas() {
             <input 
               value={devolucaoObs} 
               onChange={(e) => setDevolucaoObs(e.target.value)} 
-              className="w-full border-gray-300 rounded-xl focus:ring-orange-500 focus:border-orange-500" 
+              className={`w-full rounded-xl focus:ring-orange-500 focus:border-orange-500 transition-colors border ${darkMode ? 'bg-slate-800 border-slate-700 text-white' : 'border-gray-300'}`} 
               placeholder="Ex: Item danificado, desgaste natural..." 
             />
           </div>
 
-          <div className="border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 h-[150px] relative">
-            <SignaturePad ref={sigPadDevolucaoRef} canvasProps={{ className: "w-full h-full" }} />
-            <button type="button" onClick={() => sigPadDevolucaoRef.current.clear()} className="absolute top-2 right-2 bg-white px-2 py-1 text-[9px] rounded border">Limpar</button>
+          <div className={`border-2 border-dashed rounded-xl h-[150px] relative transition-colors ${darkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-gray-50'}`}>
+            <SignaturePad 
+              ref={sigPadDevolucaoRef} 
+              canvasProps={{ className: "w-full h-full" }} 
+              penColor={darkMode ? "#cbd5e1" : "#000"} 
+            />
+            <button type="button" onClick={() => sigPadDevolucaoRef.current.clear()} className={`absolute top-2 right-2 px-2 py-1 text-[9px] rounded border ${darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white'}`}>Limpar</button>
           </div>
 
-          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs transition-all">
+          <button onClick={handleDevolucao} disabled={devolucaoLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 rounded-xl shadow-lg uppercase text-xs transition-all active:scale-95">
             {devolucaoLoading ? "Gravando..." : "Confirmar Recebimento de Devolução"}
           </button>
         </div>
