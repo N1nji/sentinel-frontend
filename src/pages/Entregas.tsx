@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState, useLayoutEffect, useMemo } from "react";
 import { api } from "../services/api";
 import SignaturePad from "react-signature-canvas";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import IAModal from "../components/IASelectModal";
-import { useTheme } from "../context/ThemeContext"; // IMPORTADO
-import { SparklesIcon } from "@heroicons/react/24/solid";
+import { useTheme } from "../context/ThemeContext";
+import { SparklesIcon, MagnifyingGlassIcon, ChartBarIcon } from "@heroicons/react/24/solid"; // IMPORTADOS
 import jsPDF from "jspdf";
 import { io } from "socket.io-client";
 
@@ -25,7 +25,6 @@ import {
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 const socket = io(SOCKET_URL, { autoConnect: true });
 
-// ... (Interfaces mantidas iguais)
 interface IEntrega {
   _id: string;
   colaboradorId: { _id: string; nome: string; matricula?: string; };
@@ -51,7 +50,7 @@ interface IEntrega {
 }
 
 export default function Entregas() {
-  const { darkMode } = useTheme(); // CONSUMINDO TEMA
+  const { darkMode } = useTheme();
   const [entregas, setEntregas] = useState<IEntrega[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -77,6 +76,7 @@ export default function Entregas() {
   const sigPadDevolucaoRef = useRef<any>(null);
 
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "ativos" | "devolvidos">("todos");
+  const [busca, setBusca] = useState(""); // NOVO ESTADO
   const [isAdmin, setIsAdmin] = useState(false); 
   const token = localStorage.getItem("token");
 
@@ -84,7 +84,6 @@ export default function Entregas() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [openIA, setOpenIA] = useState(false);
 
-  // ... (Lógicas de load, socket, PDF e submit mantidas exatamente como estavam)
   async function load() {
     setLoading(true);
     try {
@@ -131,11 +130,28 @@ export default function Entregas() {
     return () => { socket.off("nova_entrega"); };
   }, []);
 
-  const entregasFiltradas = entregas.filter(en => {
-    if (filtroStatus === "ativos") return !en.devolvida;
-    if (filtroStatus === "devolvidos") return en.devolvida;
-    return true;
-  });
+  // --- LÓGICA DE FILTRAGEM E BUSCA ---
+  const entregasExibidas = useMemo(() => {
+    return entregas.filter(en => {
+      const matchStatus = 
+        filtroStatus === "todos" ? true :
+        filtroStatus === "ativos" ? !en.devolvida : en.devolvida;
+      
+      const termo = busca.toLowerCase();
+      const matchBusca = 
+        en.colaboradorId?.nome.toLowerCase().includes(termo) ||
+        (en.epiSnapshot?.nome || en.epiId?.nome).toLowerCase().includes(termo);
+
+      return matchStatus && matchBusca;
+    });
+  }, [entregas, filtroStatus, busca]);
+
+  // --- ESTATÍSTICAS RÁPIDAS ---
+  const stats = {
+    total: entregas.length,
+    ativos: entregas.filter(e => !e.devolvida).length,
+    vencidos: entregas.filter(e => e.epiSnapshot?.validade_ca && new Date(e.epiSnapshot.validade_ca) < new Date()).length
+  };
 
   async function generatePdfReceipt(en: IEntrega) {
     const doc = new jsPDF();
@@ -312,15 +328,49 @@ export default function Entregas() {
         </div>
       </div>
 
-      {/* FILTROS */}
-      <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        <div className="flex items-center gap-2 text-gray-400 mr-2">
-          <FunnelIcon className="h-4 w-4" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
+      {/* CARDS DE RESUMO (ADICIONADO) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {[
+          { label: "Total Registros", value: stats.total, color: "text-blue-500", bg: "bg-blue-500/10" },
+          { label: "EPIs em Uso", value: stats.ativos, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "CAs Vencidos", value: stats.vencidos, color: "text-rose-500", bg: "bg-rose-500/10" }
+        ].map((item, i) => (
+          <div key={i} className={`p-4 rounded-2xl border ${darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"} shadow-sm flex items-center justify-between`}>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</p>
+              <p className={`text-2xl font-black ${darkMode ? "text-white" : "text-slate-900"}`}>{item.value}</p>
+            </div>
+            <div className={`p-3 rounded-xl ${item.bg} ${item.color}`}>
+              <ChartBarIcon className="h-5 w-5" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FILTROS E BUSCA (AJUSTADO) */}
+      <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+        <div className="relative w-full md:flex-1">
+          <MagnifyingGlassIcon className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Buscar por colaborador ou EPI..."
+            className={`w-full pl-11 pr-4 py-2.5 rounded-xl border outline-none transition-all ${
+              darkMode ? 'bg-slate-900 border-slate-800 text-white focus:border-blue-500' : 'bg-white border-gray-200 focus:border-blue-500'
+            }`}
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
         </div>
-        <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'todos' ? (darkMode ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white shadow-md') : (darkMode ? 'bg-slate-900 text-slate-400 border border-slate-800' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100')}`}>Todos</button>
-        <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-emerald-500 border border-emerald-900/50' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50')}`}>Somente Ativos</button>
-        <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-blue-500 border border-blue-900/50' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50')}`}>Devolvidos</button>
+
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+          <div className="flex items-center gap-2 text-gray-400 mr-2 shrink-0">
+            <FunnelIcon className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Filtrar:</span>
+          </div>
+          <button onClick={() => setFiltroStatus("todos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'todos' ? (darkMode ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white shadow-md') : (darkMode ? 'bg-slate-900 text-slate-400 border border-slate-800' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100')}`}>Todos</button>
+          <button onClick={() => setFiltroStatus("ativos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'ativos' ? 'bg-emerald-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-emerald-500 border border-emerald-900/50' : 'bg-white text-emerald-600 border border-emerald-100 hover:bg-emerald-50')}`}>Somente Ativos</button>
+          <button onClick={() => setFiltroStatus("devolvidos")} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${filtroStatus === 'devolvidos' ? 'bg-blue-600 text-white shadow-md' : (darkMode ? 'bg-slate-900 text-blue-500 border border-blue-900/50' : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50')}`}>Devolvidos</button>
+        </div>
       </div>
 
       {/* TABELA */}
@@ -337,7 +387,7 @@ export default function Entregas() {
               </tr>
             </thead>
             <tbody className={`divide-y ${darkMode ? 'divide-slate-800' : 'divide-gray-100'}`}>
-              {entregasFiltradas.map(en => {
+              {entregasExibidas.map(en => {
                 const isCAVencido = en.epiSnapshot?.validade_ca ? new Date(en.epiSnapshot.validade_ca) < new Date() : false;
                 return (
                   <tr key={en._id} className={`transition-all group ${darkMode ? 'hover:bg-blue-900/10' : 'hover:bg-blue-50/20'}`}>
@@ -363,8 +413,8 @@ export default function Entregas() {
                           <CalendarDaysIcon className="h-3.5 w-3.5 text-gray-400" />
                           {new Date(en.dataEntrega).toLocaleDateString()}
                         </span>
-                        <span className={`${isCAVencido ? 'text-red-500 font-black' : 'text-gray-400 font-medium'}`}>
-                          CA: {en.epiSnapshot?.ca || '---'} {isCAVencido && ' (VENCIDO)'}
+                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md w-fit mt-1 ${isCAVencido ? 'bg-rose-500/10 text-rose-500 font-black animate-pulse' : 'text-gray-400 font-medium'}`}>
+                          CA: {en.epiSnapshot?.ca || '---'} {isCAVencido && <ExclamationTriangleIcon className="h-3 w-3" />}
                         </span>
                       </div>
                     </td>
@@ -387,11 +437,17 @@ export default function Entregas() {
                   </tr>
                 )
               })}
+              {entregasExibidas.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-10 text-center text-slate-400 font-bold">Nenhum registro encontrado.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* OS MODAIS CONTINUAM EXATAMENTE IGUAIS ABAIXO... */}
       {/* MODAL NOVA ENTREGA */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title="Nova Entrega">
         <form onSubmit={handleSubmit} className="space-y-4">
