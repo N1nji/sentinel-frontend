@@ -55,19 +55,18 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
   }
 
 async function handleSend() {
-  // 1. Verificações básicas
   if (!chatId || !input.trim() || loading) return;
 
   const msg = input.trim();
-  setInput(""); // Limpa o campo
-  setLoading(true); // Ativa os "pontinhos" de carregamento
+  setInput("");
+  setLoading(true);
 
   try {
-    // 2. CHAMADA ÚNICA
-    // backend salva o user, busca contexto, chama IA e salva assistant.
+    // Chama o seu service de chat padrão. 
+    // Como seu backend já tem a IA integrada, ele vai salvar e responder de uma vez.
     const res = await enviarMensagem(chatId, msg);
-
-    // 3. ATUALIZA A TELA
+    
+    // Atualiza o chat com o que o banco devolveu (pergunta + resposta certa)
     setChat(res.chat);
 
   } catch (err) {
