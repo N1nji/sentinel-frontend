@@ -55,39 +55,23 @@ export default function ChatWindow({ chatId, onBack }: { chatId: string | null; 
     }
   }
 
-async function handleSend() {
-  if (!chatId || !input.trim() || loading) return;
+  async function handleSend() {
+    if (!chatId || !input.trim() || loading) return;
 
-  const msg = input.trim();
-  setInput("");
-  setLoading(true);
+    const msg = input.trim();
+    setInput("");
+    setLoading(true);
 
-  try {
-    // 1. Salva a pergunta do usuário no banco (role padrão é "user")
-    await enviarMensagem(chatId, msg);
-
-    // 2. Prepara o histórico para a IA
-    const historicoParaIA = chat?.mensagens?.map((m: any) => ({
-      role: m.role === "user" ? "user" : "assistant",
-      content: m.content
-    })) || [];
-
-    // 3. Pega a resposta da IA
-    const respostaIA = await chatComContext(msg, historicoParaIA);
-    
-    // 4. Salva a resposta da IA no banco especificando o role "assistant"
-    const resFinal = await enviarMensagem(chatId, respostaIA, "assistant");
-
-    // 5. Atualiza a tela com o chat atualizado vindo do banco
-    setChat(resFinal.chat);
-
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao enviar mensagem");
-  } finally {
-    setLoading(false);
+    try {
+      // Apenas UMA chamada. O backend resolve o resto.
+      const res = await enviarMensagem(chatId, msg);
+      setChat(res.chat);
+    } catch {
+      alert("Erro ao enviar mensagem");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   if (!chatId) {
     return (
