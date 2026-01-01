@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { api } from "../services/api";
 
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import AiModal from "../components/AiModal";
 import { sugerirEpi } from "../services/ia";
-import { useTheme } from "../context/ThemeContext"; // IMPORTADO
+import { useTheme } from "../context/ThemeContext";
 
 import {
   PlusIcon,
@@ -16,6 +16,16 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+
+// --- FUNÇÃO DE CÁLCULO (Espelhando o Backend) ---
+const calcularClassificacaoLocal = (p: number, s: number) => {
+  const nivel = p * s;
+  if (nivel <= 4) return { nivel, label: "baixo" };
+  if (nivel <= 8) return { nivel, label: "moderado" };
+  if (nivel <= 12) return { nivel, label: "medio" };
+  if (nivel <= 18) return { nivel, label: "alto" };
+  return { nivel, label: "critico" };
+};
 
 interface ISetor {
   _id: string;
@@ -38,7 +48,7 @@ interface IRisco {
 }
 
 export default function Riscos() {
-  const { darkMode } = useTheme(); // CONSUMINDO O TEMA
+  const { darkMode } = useTheme();
   const [riscos, setRiscos] = useState<IRisco[]>([]);
   const [setores, setSetores] = useState<ISetor[]>([]);
   const [busca, setBusca] = useState("");
@@ -66,6 +76,9 @@ export default function Riscos() {
   const [status, setStatus] = useState("ativo");
 
   const token = localStorage.getItem("token");
+
+  // --- PREVIEW EM TEMPO REAL ---
+  const previewRisco = useMemo(() => calcularClassificacaoLocal(probabilidade, severidade), [probabilidade, severidade]);
 
   async function load() {
     const [riscosRes, setoresRes] = await Promise.all([
@@ -155,33 +168,33 @@ export default function Riscos() {
       </div>
 
       {/* STATS CARDS */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Total de Riscos</p>
-        <div className="flex items-end gap-2">
-          <span className="text-2xl font-black text-slate-900 dark:text-white">{riscos.length}</span>
-          <span className="text-[10px] font-bold text-emerald-500 mb-1">Mapeados</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Total de Riscos</p>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-black text-slate-900 dark:text-white">{riscos.length}</span>
+            <span className="text-[10px] font-bold text-emerald-500 mb-1">Mapeados</span>
+          </div>
         </div>
-      </div>
 
-      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Filtro Atual</p>
-        <div className="flex items-end gap-2">
-          <span className="text-2xl font-black text-rose-500">{filtrados.length}</span>
-          <span className="text-[10px] font-bold text-slate-400 mb-1">Encontrados</span>
+        <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Filtro Atual</p>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-black text-rose-500">{filtrados.length}</span>
+            <span className="text-[10px] font-bold text-slate-400 mb-1">Encontrados</span>
+          </div>
         </div>
-      </div>
 
-      <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Status Ativo</p>
-        <div className="flex items-end gap-2">
-          <span className="text-2xl font-black text-amber-500">
-            {riscos.filter(r => r.status === 'ativo').length}
-          </span>
-          <span className="text-[10px] font-bold text-slate-400 mb-1">Em Aberto</span>
+        <div className={`p-4 rounded-[1.5rem] border shadow-sm transition-all ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+          <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Status Ativo</p>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-black text-amber-500">
+              {riscos.filter(r => r.status === 'ativo').length}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 mb-1">Em Aberto</span>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* TOOLBAR */}
       <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
@@ -193,7 +206,7 @@ export default function Riscos() {
             className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white pl-12 pr-4 py-3 rounded-2xl focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all shadow-sm"
             value={busca}
             onChange={(e) => { setBusca(e.target.value); setPaginaAtual(1); }}
-          />  
+          />
         </div>
 
         <button
@@ -267,13 +280,13 @@ export default function Riscos() {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex justify-end gap-1 md:opacity-0 group-hover:opacity-100 transition-all">
-                      <button 
+                      <button
                         onClick={() => { setEditingId(r._id); setNome(r.nome); setCategoria(r.categoria); setSetorId(r.setorId?._id); setDescricao(r.descricao); setProbabilidade(r.probabilidade); setSeveridade(r.severidade); setMedidas(r.medidas); setResponsavel(r.responsavel); setStatus(r.status); setOpenModal(true); }}
                         className="p-2 text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl transition-all"
                       >
                         <PencilSquareIcon className="h-5 w-5" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => { setDeleteId(r._id); setOpenDelete(true); }}
                         className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-xl transition-all"
                       >
@@ -317,36 +330,44 @@ export default function Riscos() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">Categoria</label>
                 <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none shadow-sm cursor-pointer" value={categoria} onChange={(e) => setCategoria(e.target.value)} required>
-                  <option value="fisico" className="dark:bg-slate-900">Físico</option>
-                  <option value="quimico" className="dark:bg-slate-900">Químico</option>
-                  <option value="biologico" className="dark:bg-slate-900">Biológico</option>
-                  <option value="ergonomico" className="dark:bg-slate-900">Ergonômico</option>
-                  <option value="acidente" className="dark:bg-slate-900">Acidente</option>
+                  <option value="fisico">Físico</option>
+                  <option value="quimico">Químico</option>
+                  <option value="biologico">Biológico</option>
+                  <option value="ergonomico">Ergonômico</option>
+                  <option value="acidente">Acidente</option>
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">Setor</label>
                 <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none shadow-sm cursor-pointer" value={setorId} onChange={(e) => setSetorId(e.target.value)} required>
-                  <option value="" className="dark:bg-slate-900">Onde ocorre?</option>
-                  {setores.map((s) => <option key={s._id} value={s._id} className="dark:bg-slate-900">{s.nome}</option>)}
+                  <option value="">Onde ocorre?</option>
+                  {setores.map((s) => <option key={s._id} value={s._id}>{s.nome}</option>)}
                 </select>
               </div>
             </div>
 
+            {/* MATRIZ DE CRITICIDADE COM PREVIEW --- MUDANÇA AQUI --- */}
             <div className="bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm space-y-6">
-              <p className="text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 text-center tracking-[0.2em]">Matriz de Criticidade</p>
+              <div className="flex justify-between items-center">
+                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Matriz de Criticidade</p>
+                 {/* BADGE DE PREVIEW EM TEMPO REAL */}
+                 <span className={`px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest transition-all duration-300 ${getBadgeClass(previewRisco.label)}`}>
+                   {previewRisco.label} ({previewRisco.nivel})
+                 </span>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-4 text-center">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center px-2">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Probabilidade</label>
-                    <span className="bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-3 py-1 rounded-full text-xs font-black">{probabilidade}</span>
+                    <span className="text-rose-600 dark:text-rose-400 text-xs font-black">{probabilidade}</span>
                   </div>
                   <input type="range" min="1" max="5" className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-600" value={probabilidade} onChange={(e) => setProbabilidade(Number(e.target.value))} />
                 </div>
-                <div className="space-y-4 text-center">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center px-2">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Severidade</label>
-                    <span className="bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-3 py-1 rounded-full text-xs font-black">{severidade}</span>
+                    <span className="text-rose-600 dark:text-rose-400 text-xs font-black">{severidade}</span>
                   </div>
                   <input type="range" min="1" max="5" className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-600" value={severidade} onChange={(e) => setSeveridade(Number(e.target.value))} />
                 </div>
@@ -366,8 +387,8 @@ export default function Riscos() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 ml-1 tracking-wider">Status</label>
                 <select className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white p-4 rounded-2xl outline-none focus:ring-2 focus:ring-rose-500/20 appearance-none font-bold text-sm shadow-sm cursor-pointer" value={status} onChange={(e) => setStatus(e.target.value)}>
-                  <option value="ativo" className="dark:bg-slate-900 text-rose-500">⚠️ ATIVO</option>
-                  <option value="controlado" className="dark:bg-slate-900 text-emerald-500">✅ CONTROLADO</option>
+                  <option value="ativo" className="text-rose-500">⚠️ ATIVO</option>
+                  <option value="controlado" className="text-emerald-500">✅ CONTROLADO</option>
                 </select>
               </div>
             </div>
