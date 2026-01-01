@@ -30,7 +30,7 @@ export default function Relatorios() {
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
 
-  // Lógica de PDF mantida conforme original (PDFs geralmente são gerados em fundo branco/padrão)
+  // Lógica de PDF
   async function exportRelatorioPdf() {
     const doc = new jsPDF();
     const dateStr = new Date().toLocaleDateString();

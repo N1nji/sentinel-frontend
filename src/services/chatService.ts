@@ -16,9 +16,14 @@ export async function getChat(id:string) {
   const res = await axios.get(`${API}/chat/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   return res.data;
 }
-export async function enviarMensagem(chatId:string, content:string) {
+export async function enviarMensagem(chatId: string, content: string, role: "user" | "assistant" = "user") {
   const token = localStorage.getItem("token");
-  const res = await axios.post(`${API}/chat/${chatId}/mensagem`, { content }, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await axios.post(
+    `${API}/chat/${chatId}/mensagem`, 
+    { content, role }, 
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  
   return res.data;
 }
 export async function deletarChat(chatId:string) {

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Settings as SettingsIcon, Moon, Sun, Bell, Globe } from "lucide-react";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importe o hook do seu contexto
+import { useTheme } from "../context/ThemeContext";
 
 export default function Settings() {
-  // 🔹 AGORA CONSUMIMOS O TEMA GLOBALMENTE
+  //  AGORA CONSUMIMOS O TEMA GLOBALMENTE
   const { darkMode, toggleTheme } = useTheme();
 
   const [notifications, setNotifications] = useState({
@@ -14,7 +14,7 @@ export default function Settings() {
 
   const [salvando, setSalvando] = useState(false);
 
-  // 🔹 Salvar apenas as notificações (o tema já salva sozinho no contexto)
+  // Salvar apenas as notificações (o tema já salva sozinho no contexto)
   const handleSave = () => {
     setSalvando(true);
     localStorage.setItem("notifications", JSON.stringify(notifications));

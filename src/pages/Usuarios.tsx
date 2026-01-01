@@ -47,7 +47,7 @@ export default function Usuarios() {
   const token = localStorage.getItem("token");
   
   // Simulação de usuário logado para o Badge "Você"
-  // No futuro, você pode pegar isso do seu contexto de Auth
+  // No futuro pegar isso do seu contexto de Auth
   const emailLogado = "admin@admin.com"; 
 
   async function load() {

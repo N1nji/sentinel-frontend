@@ -1,9 +1,9 @@
 // src/components/Card.tsx
 import React from "react";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
+import { useTheme } from "../context/ThemeContext"; // Importado o contexto
 
 export default function Card({ title, children }: { title?: string; children: React.ReactNode }) {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
+  const { darkMode } = useTheme(); // Consumindo o estado do tema
 
   return (
     <div className={`

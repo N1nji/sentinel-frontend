@@ -1,7 +1,7 @@
 // src/components/FiltersPanel.tsx
 import dayjs from "dayjs";
 import { FunnelIcon, CalendarDaysIcon, MapPinIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o contexto
+import { useTheme } from "../context/ThemeContext"; // Importado o contexto
 
 export type Filters = {
   from: string;
@@ -21,7 +21,7 @@ export default function FiltersPanel({
   setores: { _id: string; nome: string }[];
   epis: { _id: string; nome: string }[];
 }) {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o estado do tema
+  const { darkMode } = useTheme(); //Consumindo o estado do tema
 
   return (
     <div className={`p-6 rounded-[2rem] border transition-all duration-300 mb-8 ${

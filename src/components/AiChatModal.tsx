@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline"; 
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado o tema
+import { useTheme } from "../context/ThemeContext"; // Importado o tema
 
 export default function AiChatModal({ open, onClose }: any) {
-  const { darkMode } = useTheme(); // 🔹 Consumindo o tema
+  const { darkMode } = useTheme(); // Consumindo o tema
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   // Fecha o modal ao apertar ESC

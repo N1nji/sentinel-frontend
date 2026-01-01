@@ -6,7 +6,7 @@ import {
   deletarChat,
   renomearChat,
 } from "../services/chatService";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Melhoria 1: Import do Tema
+import { useTheme } from "../context/ThemeContext"; // Melhoria 1: Import do Tema
 import {
   EllipsisVerticalIcon,
   TrashIcon,

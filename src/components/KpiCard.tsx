@@ -5,9 +5,9 @@ import { useTheme } from "../context/ThemeContext";
 interface KpiCardProps {
   label: string;
   value: number | string;
-  icon: ReactNode; // 2. Use a importação aqui (sem o "React.")
+  icon: ReactNode;
   color?: "indigo" | "rose" | "emerald" | "amber" | "blue";
-  trend?: ReactNode; // 3. Mude de 'string' para 'ReactNode' 🔹
+  trend?: ReactNode;
 }
 
 export default function KpiCard({
@@ -45,8 +45,6 @@ export default function KpiCard({
         </div>
         
         {trend && (
-          // Removi o "uppercase" e o "font-black" fixo para que o elemento 
-          // que você passar no Dashboard controle o próprio estilo se quiser
           <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-white tracking-widest flex items-center gap-1">
             {trend}
           </div>

@@ -1,8 +1,8 @@
-// src/pages/Chat.tsx (ou onde estiver seu ChatPage)
+// src/pages/Chat.tsx
 import { useState } from "react";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
-import { useTheme } from "../context/ThemeContext"; // 🔹 Importado para manter consistência
+import { useTheme } from "../context/ThemeContext";
 
 export default function ChatPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function ChatPage() {
       <div className={`${!selectedId ? "hidden md:flex" : "flex"} flex-1 h-full relative`}>
         <ChatWindow 
           chatId={selectedId} 
-          onBack={() => setSelectedId(null)} // 🔹 A função que o botão de voltar do mobile vai usar
+          onBack={() => setSelectedId(null)} //função que o botão de voltar do mobile vai usar
         />
       </div>
       
