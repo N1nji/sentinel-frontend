@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getChat, enviarMensagem, renomearChat, exportChatPdf } from "../services/chatService";
 import { useTheme } from "../context/ThemeContext";
-import { chatComContext } from "../services/ia";
 import { 
   PaperAirplaneIcon, 
   ArrowDownTrayIcon, 
