@@ -200,17 +200,17 @@ export default function Relatorios() {
 
           {/* FIX: Alerta de estoque baixo visível se houver itens */}
           <div className={`p-4 rounded-2xl border flex items-center gap-4 transition-all ${
-            episStatus.semEstoque.length > 5 
+            episStatus.semEstoque.length > 0 
               ? (darkMode ? 'bg-amber-900/20 border-amber-800 text-amber-400 shadow-amber-900/10' : 'bg-amber-50 border-amber-100 text-amber-700 shadow-amber-100') 
               : (darkMode ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-400')
           }`}>
-            <div className={`p-3 rounded-xl ${episStatus.semEstoque.length > 5 ? (darkMode ? 'bg-amber-900/40 text-amber-500' : 'bg-amber-100 text-amber-500') : (darkMode ? 'bg-slate-700' : 'bg-slate-100')}`}>
+            <div className={`p-3 rounded-xl ${episStatus.semEstoque.length > 0 ? (darkMode ? 'bg-amber-900/40 text-amber-500' : 'bg-amber-100 text-amber-500') : (darkMode ? 'bg-slate-700' : 'bg-slate-100')}`}>
               <ChartBarIcon className="h-6 w-6" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Alerta de Suprimentos</p>
               <p className="text-sm font-black tracking-tight">
-                {episStatus.semEstoque.length > 5 ? `${episStatus.semEstoque.length} ITENS COM ESTOQUE BAIXO` : 'ESTOQUE NORMALIZADO'}
+                {episStatus.semEstoque.length > 0 ? `${episStatus.semEstoque.length} ITENS COM ESTOQUE BAIXO` : 'ESTOQUE NORMALIZADO'}
               </p>
             </div>
           </div>

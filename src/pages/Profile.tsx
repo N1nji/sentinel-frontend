@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { User, Settings, ShieldCheck, ListChecks, PieChart, Lock, Clock, CalendarDays } from 'lucide-react';
+import { useTheme } from "../context/ThemeContext"; // IMPORTADO
+import { NavLink } from 'react-router-dom'; // IMPORTADO
 
-// Interfaces para os dados que vêm do backend
 interface Log {
   _id: string;
   acao: string;
@@ -13,12 +14,11 @@ interface Usuario {
   _id: string;
   nome: string;
   email: string;
-  tipo: "admin" | "comum"; // Ajustado para "comum"
+  tipo: "admin" | "comum";
   cargo: string;
   dataCriacao: string;
 }
 
-// Para formatar a data dos logs de forma mais amigável
 const formatRelativeTime = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -34,14 +34,13 @@ const formatRelativeTime = (dateString: string) => {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-
 export default function Profile() {
+  const { darkMode } = useTheme(); // CONSUMINDO TEMA
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // URL da API, igual ao Header.tsx
   const API_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
 
   useEffect(() => {
@@ -55,10 +54,8 @@ export default function Profile() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/auth/me`, { // Sua nova rota /auth/me
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
         });
 
         if (!response.ok) {
@@ -71,7 +68,6 @@ export default function Profile() {
         setLogs(data.logs);
       } catch (err: any) {
         setError(err.message || "Erro desconhecido ao carregar perfil.");
-        console.error("Erro no perfil:", err);
       } finally {
         setLoading(false);
       }
@@ -82,115 +78,119 @@ export default function Profile() {
 
   const userPermissions = useMemo(() => {
     if (!usuario) return [];
+    const colorClass = usuario.tipo === "admin" ? "text-emerald-500" : "text-blue-500";
+    
+    const base = [
+      { icon: <ShieldCheck size={18} className={colorClass} />, text: "Acesso ao Inventário EPI" },
+      { icon: <ListChecks size={18} className={colorClass} />, text: "Registrar Entregas e Devoluções" },
+      { icon: <PieChart size={18} className={colorClass} />, text: "Visualizar Relatórios" },
+    ];
 
     if (usuario.tipo === "admin") {
       return [
         { icon: <Lock size={18} className="text-emerald-500" />, text: "Acesso Total ao Sistema" },
-        { icon: <User size={18} className="text-emerald-500" />, text: "Gerenciar Usuários e Permissões" },
-        { icon: <ShieldCheck size={18} className="text-emerald-500" />, text: "Acesso Completo a Inventário EPI" },
-        { icon: <ListChecks size={18} className="text-emerald-500" />, text: "Gerenciar Entregas e Devoluções" },
-        { icon: <PieChart size={18} className="text-emerald-500" />, text: "Visualizar e Exportar Relatórios Detalhados" },
-      ];
-    } else { // Tipo "comum"
-      return [
-        { icon: <ShieldCheck size={18} className="text-blue-500" />, text: "Acessar Inventário EPI" },
-        { icon: <ListChecks size={18} className="text-blue-500" />, text: "Registrar Entregas e Devoluções" },
-        { icon: <PieChart size={18} className="text-blue-500" />, text: "Visualizar Relatórios Básicos" },
+        { icon: <User size={18} className="text-emerald-500" />, text: "Gerenciar Usuários" },
+        ...base,
       ];
     }
+    return base;
   }, [usuario]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full text-indigo-400">
-        <svg className="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span className="ml-3 text-lg">Carregando perfil...</span>
+      <div className={`flex flex-col justify-center items-center h-screen ${darkMode ? 'bg-slate-950 text-indigo-400' : 'bg-gray-50 text-indigo-600'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <span className="mt-4 font-bold tracking-widest uppercase text-xs">Sincronizando Sentinel...</span>
       </div>
     );
   }
 
-  if (error) {
-    return <div className="p-8 text-red-500 text-center">{error}</div>;
-  }
-
-  if (!usuario) {
-    return <div className="p-8 text-gray-500 text-center">Nenhum dado de usuário encontrado.</div>;
-  }
-
   return (
-    <main className="flex-1 p-6 bg-gray-50 min-h-screen">
+    <main className={`flex-1 p-6 transition-colors duration-300 min-h-screen ${darkMode ? 'bg-slate-950 text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
-          <User size={28} className="text-indigo-600" /> Meu Perfil Sentinel
+        <h1 className={`text-3xl font-black mb-8 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+          <User size={32} className="text-indigo-600" /> Meu Perfil
         </h1>
 
-        {/* Card de Informações Básicas */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-4xl font-bold text-white shadow-xl flex-shrink-0">
-            {usuario.nome[0]?.toUpperCase() || 'U'}
+        {/* Card Principal */}
+        <div className={`rounded-[2.5rem] shadow-xl p-8 mb-8 border transition-all flex flex-col md:flex-row items-center md:items-start gap-8 ${
+          darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+        }`}>
+          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-5xl font-black text-white shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-300">
+            {usuario?.nome[0]?.toUpperCase()}
           </div>
-          <div className="text-center sm:text-left flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">{usuario.nome}</h2>
-            <p className="text-gray-600 mb-3">{usuario.email}</p>
-            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide
-              ${usuario.tipo === "admin" ? "bg-indigo-100 text-indigo-700" : "bg-blue-100 text-blue-700"}
-            `}>
-              <ShieldCheck size={14} className="mr-2" /> {usuario.cargo || usuario.tipo}
-            </span>
-            <p className="text-xs text-gray-400 mt-2 flex items-center justify-center sm:justify-start gap-1">
-                <CalendarDays size={12} /> Membro desde: {new Date(usuario.dataCriacao).toLocaleDateString('pt-BR')}
-            </p>
+
+          <div className="text-center md:text-left flex-1">
+            <h2 className="text-3xl font-black tracking-tight mb-1">{usuario?.nome}</h2>
+            <p className={`${darkMode ? 'text-slate-400' : 'text-gray-500'} font-medium mb-4`}>{usuario?.email}</p>
+            
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 items-center">
+              <span className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 ${
+                usuario?.tipo === "admin" ? "bg-emerald-500/10 text-emerald-500" : "bg-indigo-500/10 text-indigo-500"
+              }`}>
+                <ShieldCheck size={14} /> {usuario?.cargo || usuario?.tipo}
+              </span>
+              
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${darkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                <CalendarDays size={14} /> Membro desde: {usuario?.dataCriacao ? new Date(usuario.dataCriacao).toLocaleDateString('pt-BR') : '---'}
+              </span>
+            </div>
           </div>
-          <div className="sm:ml-auto flex flex-col gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-             <button className="flex items-center justify-center sm:justify-start gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200">
-                <Settings size={18} className="text-gray-500" /> Configurações <span className="ml-auto text-[10px] text-gray-400 font-bold bg-gray-100 px-2 py-0.5 rounded-full">EM BREVE</span>
-            </button>
-            <button className="flex items-center justify-center sm:justify-start gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors border border-rose-200">
-                <Lock size={18} className="text-rose-500" /> Alterar Senha <span className="ml-auto text-[10px] text-rose-400 font-bold bg-rose-100 px-2 py-0.5 rounded-full">EM BREVE</span>
+
+          {/* Ações */}
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <NavLink 
+              to="/settings" 
+              className={`flex items-center justify-center md:justify-start gap-3 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
+                darkMode ? 'bg-slate-800 hover:bg-indigo-600 text-white' : 'bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700'
+              }`}
+            >
+              <Settings size={18} /> Configurações
+            </NavLink>
+            <button className={`flex items-center justify-center md:justify-start gap-3 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
+              darkMode ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white'
+            }`}>
+              <Lock size={18} /> Alterar Senha
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Card de Permissões */}
-          <div className="lg:col-span-1 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
-              <ListChecks size={22} className="text-indigo-500" /> Minhas Permissões
+          {/* Permissões */}
+          <div className={`rounded-[2rem] p-8 border shadow-lg ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+            <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+              <ListChecks size={24} className="text-indigo-500" /> Permissões
             </h3>
-            <ul className="space-y-3">
-              {userPermissions.map((permission, index) => (
-                <li key={index} className="flex items-center gap-3 text-gray-700 font-medium">
-                  {permission.icon}
-                  {permission.text}
+            <ul className="space-y-4">
+              {userPermissions.map((perm, i) => (
+                <li key={i} className="flex items-start gap-3 text-sm font-bold opacity-85 leading-tight">
+                  <span className="mt-0.5">{perm.icon}</span>
+                  {perm.text}
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Card de Atividades Recentes */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
-              <Clock size={22} className="text-indigo-500" /> Atividades Recentes
+          {/* Atividades */}
+          <div className={`lg:col-span-2 rounded-[2rem] p-8 border shadow-lg ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+            <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+              <Clock size={24} className="text-indigo-500" /> Atividades Recentes
             </h3>
-            {logs.length === 0 ? (
-              <div className="p-4 text-center text-gray-500 text-sm bg-gray-50 rounded-lg">Nenhuma atividade registrada ainda.</div>
-            ) : (
-              <ul className="space-y-4">
-                {logs.map(log => (
-                  <li key={log._id} className="relative pl-6 before:absolute before:left-0 before:top-2 before:h-2 before:w-2 before:rounded-full before:bg-indigo-400 before:shadow-md before:shadow-indigo-200">
-                    <p className="text-sm text-gray-800 font-medium">{log.acao}</p>
-                    {log.detalhes && <p className="text-xs text-gray-600 mt-1">{log.detalhes}</p>}
-                    <p className="text-[10px] text-gray-400 mt-1">{formatRelativeTime(log.data)}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="space-y-6">
+              {logs.length === 0 ? (
+                <p className="text-center py-8 text-sm font-bold opacity-50">Nenhum log registrado.</p>
+              ) : (
+                logs.slice(0, 5).map(log => (
+                  <div key={log._id} className="relative pl-8 before:absolute before:left-0 before:top-1 before:w-3 before:h-3 before:bg-indigo-500 before:rounded-full before:ring-4 before:ring-indigo-500/20">
+                    <p className="text-sm font-black tracking-tight">{log.acao}</p>
+                    {log.detalhes && <p className="text-xs opacity-60 font-medium mt-1">{log.detalhes}</p>}
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mt-2">{formatRelativeTime(log.data)}</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
-
       </div>
     </main>
   );
