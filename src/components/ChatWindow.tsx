@@ -65,11 +65,10 @@ async function handleSend() {
 
   try {
     // 2. CHAMADA ÚNICA
-    // O seu backend já faz tudo: salva o user, busca contexto, chama IA e salva assistant.
+    // backend salva o user, busca contexto, chama IA e salva assistant.
     const res = await enviarMensagem(chatId, msg);
 
     // 3. ATUALIZA A TELA
-    // O res.chat já vem com as duas mensagens novas (a sua e a da IA)
     setChat(res.chat);
 
   } catch (err) {
