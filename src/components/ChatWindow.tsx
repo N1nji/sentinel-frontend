@@ -132,7 +132,7 @@ async function handleSend() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button 
             onClick={handleExport} 
-            className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+            className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
           >
             <ArrowDownTrayIcon className="h-4 w-4" /> 
             <span className="hidden sm:inline">PDF</span>
