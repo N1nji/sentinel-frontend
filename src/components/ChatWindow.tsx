@@ -129,7 +129,7 @@ async function handleSend() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0 mr-auto">
+        <div className="flex items-center gap-3 flex-shrink-0 mr-2">
           <button 
             onClick={handleExport} 
             className="flex items-center gap-4 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
