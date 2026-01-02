@@ -17,8 +17,8 @@ import {
   UserX,
   Activity,
   LogOut,
-  MoreVertical,
-  User
+  User,
+  RefreshCcw
 } from "lucide-react";
 
 import {
@@ -61,12 +61,14 @@ export default function SecurityDashboard() {
     loadData();
   }, []);
 
+  // Cálculos de KPIs
   const kpis = useMemo(() => ({
     success: logs.filter(l => l.action === "LOGIN_SUCCESS").length,
     failed: logs.filter(l => l.action === "LOGIN_FAILED").length,
     blocked: usuarios.filter(u => u.status !== "ativo").length,
   }), [logs, usuarios]);
 
+  // Formatação de dados para o gráfico
   const chartData = useMemo(() => {
     const map: Record<string, number> = {};
     logs.forEach(log => {
@@ -77,15 +79,21 @@ export default function SecurityDashboard() {
     return Object.entries(map).map(([day, value]) => ({ day, value }));
   }, [logs]);
 
-  // RENDERIZAÇÃO DO CARREGAMENTO (SKELETON)
+  // Tela de Carregamento (Skeleton Style)
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8 space-y-8 animate-pulse">
-        <div className="h-12 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg mb-10" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />)}
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+          <div className="space-y-2">
+            <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-4 w-64 bg-slate-200 dark:bg-slate-800 rounded" />
+          </div>
         </div>
-        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-[2rem]" />)}
+        </div>
+        <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-[2rem]" />
       </div>
     );
   }
@@ -101,18 +109,19 @@ export default function SecurityDashboard() {
           </div>
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Centro de Segurança</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">Monitoramento em tempo real do ecossistema Sentinel</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Monitoramento do ecossistema Sentinel</p>
           </div>
         </div>
         <button 
           onClick={loadData}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all shadow-sm"
+          className="group flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm active:scale-95"
         >
-          <Activity size={16} className="text-indigo-500" /> Atualizar Dados
+          <RefreshCcw size={16} className="text-indigo-500 group-hover:rotate-180 transition-transform duration-500" /> 
+          Sincronizar
         </button>
       </div>
 
-      {/* KPIs COM HOVER */}
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="hover:-translate-y-1 transition-transform duration-300">
           <SecurityKpiCard label="Logins Sucesso" value={kpis.success} color="green" icon={<LogIn />} />
@@ -125,8 +134,8 @@ export default function SecurityDashboard() {
         </div>
       </div>
 
-      {/* GRÁFICO PREMIUM COM GRADIENTE */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8 transition-colors">
+      {/* GRÁFICO COM AREA CHART E GRADIENTE */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600">
@@ -134,7 +143,7 @@ export default function SecurityDashboard() {
             </div>
             <h3 className="text-xl font-bold text-slate-800 dark:text-white">Frequência de Acesso</h3>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Últimos 7 dias</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Tempo Real</span>
         </div>
 
         <ResponsiveContainer width="100%" height={300}>
@@ -162,6 +171,7 @@ export default function SecurityDashboard() {
                 color: "#fff",
                 boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)"
               }}
+              itemStyle={{ color: "#818cf8" }}
             />
             <Area 
               type="monotone" 
@@ -175,10 +185,10 @@ export default function SecurityDashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* TABELA DE LOGS (Componente que você já tem) */}
+      {/* TABELA DE LOGS */}
       <SecurityLogsTable logs={logs} />
 
-      {/* LISTA DE USUÁRIOS REESTILIZADA */}
+      {/* GESTÃO DE USUÁRIOS E SESSÕES */}
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8">
         <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Controle de Sessões</h3>
 
@@ -206,9 +216,9 @@ export default function SecurityDashboard() {
                 <BlockUserButton userId={u._id} status={u.status} onSuccess={loadData} />
 
                 <button
-                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                  className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
                   title="Encerrar Sessão Remotamente"
-                  onClick={() => alert("Comando de logout enviado.")}
+                  onClick={() => alert(`Sessão de ${u.nome} encerrada.`)}
                 >
                   <LogOut size={18} />
                 </button>
