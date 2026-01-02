@@ -3,6 +3,7 @@ import { api } from "../services/api";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfirmModal";
 import { useTheme } from "../context/ThemeContext";
+import { jwtDecode } from "jwt-decode"; // 🔥 Importação necessária
 import {
   PencilSquareIcon,
   TrashIcon,
@@ -27,6 +28,15 @@ interface IUsuario {
   tipo: "admin" | "comum";
 }
 
+// Interface para o payload do seu JWT (conforme definido no seu auth.ts do backend)
+interface TokenPayload {
+  id: string;
+  email: string;
+  tipo: string;
+  iat: number;
+  exp: number;
+}
+
 export default function Usuarios() {
   const { darkMode } = useTheme();
   const [usuarios, setUsuarios] = useState<IUsuario[]>([]);
@@ -44,11 +54,9 @@ export default function Usuarios() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itensPorPagina = 8;
 
+  // ✨ A MÁGICA ACONTECE AQUI
+  const [emailLogado, setEmailLogado] = useState("");
   const token = localStorage.getItem("token");
-  
-  // Simulação de usuário logado para o Badge "Você"
-  // No futuro pegar isso do seu contexto de Auth
-  const emailLogado = "admin@admin.com"; 
 
   async function load() {
     try {
@@ -61,7 +69,18 @@ export default function Usuarios() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    // 🔥 Extrai o e-mail do token assim que o componente carrega
+    if (token) {
+      try {
+        const decoded = jwtDecode<TokenPayload>(token);
+        setEmailLogado(decoded.email);
+      } catch (error) {
+        console.error("Erro ao decodificar token:", error);
+      }
+    }
+    load();
+  }, [token]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -153,8 +172,10 @@ export default function Usuarios() {
               <UserPlusIcon size={24} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Novos Acessos</p>
-              <h4 className="text-2xl font-black text-slate-800 dark:text-white">--</h4>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Logado como</p>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[120px]">
+                {emailLogado || "---"}
+              </h4>
             </div>
           </div>
         </div>
@@ -209,7 +230,7 @@ export default function Usuarios() {
         </button>
       </div>
 
-      {/* TABELA OU EMPTY STATE */}
+      {/* TABELA */}
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
         {ordenados.length > 0 ? (
           <>
@@ -233,6 +254,7 @@ export default function Usuarios() {
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-bold text-slate-800 dark:text-slate-200">{u.nome}</p>
+                              {/* 🔥 COMPARAÇÃO REAL AQUI */}
                               {u.email === emailLogado && (
                                 <span className="text-[8px] bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-md font-black uppercase">Você</span>
                               )}
@@ -271,7 +293,6 @@ export default function Usuarios() {
               </table>
             </div>
             
-            {/* RODAPÉ / PAGINAÇÃO */}
             <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Página {paginaAtual} de {totalPaginas}</p>
               <div className="flex gap-2">
@@ -293,7 +314,6 @@ export default function Usuarios() {
             </div>
           </>
         ) : (
-          /* EMPTY STATE */
           <div className="flex flex-col items-center justify-center py-20 px-6">
             <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-4">
               <SearchX size={48} className="text-slate-400" />
@@ -312,7 +332,6 @@ export default function Usuarios() {
         )}
       </div>
 
-      {/* FORM MODAL */}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title={editingId ? "Editar Usuário" : "Novo Usuário"}>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1">
