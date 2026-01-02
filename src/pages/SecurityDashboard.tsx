@@ -188,45 +188,53 @@ export default function SecurityDashboard() {
       {/* TABELA DE LOGS */}
       <SecurityLogsTable logs={logs} />
 
-      {/* GESTÃO DE USUÁRIOS E SESSÕES */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Controle de Sessões</h3>
+    {/* GESTÃO DE USUÁRIOS E SESSÕES - MOBILE FRIENDLY */}
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-4 md:p-8">
+        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6 px-2">Controle de Sessões</h3>
 
         <div className="grid grid-cols-1 gap-4">
-          {usuarios.map(u => (
+            {usuarios.map(u => (
             <div
-              key={u._id}
-              className="group flex flex-col md:flex-row md:items-center justify-between border border-slate-100 dark:border-slate-800/50 
-                         rounded-2xl px-6 py-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
+                key={u._id}
+                className="group flex flex-col md:flex-row md:items-center justify-between border border-slate-100 dark:border-slate-800/50 
+                        rounded-2xl p-4 md:px-6 md:py-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50 
+                        hover:bg-slate-50/50 dark:hover:bg-slate-800/30 gap-4"
             >
-              <div className="flex items-center gap-4 mb-4 md:mb-0">
-                <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
-                  <User size={24} />
+                {/* INFORMAÇÕES DO USUÁRIO */}
+                <div className="flex items-center gap-4 min-w-0">
+                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
+                    <User size={24} />
                 </div>
-                <div>
-                  <p className="font-bold text-slate-800 dark:text-slate-100">{u.nome}</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{u.email}</p>
+                <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-800 dark:text-slate-100 truncate">{u.nome}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium truncate">{u.email}</p>
                 </div>
-              </div>
+                </div>
 
-              <div className="flex items-center gap-3 self-end md:self-auto">
-                <UserStatusBadge status={u.status} />
-                <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2 hidden md:block" />
+                {/* BARRA DE AÇÕES - Ajustada para Mobile */}
+                <div className="flex items-center justify-between md:justify-end gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                 
-                <BlockUserButton userId={u._id} status={u.status} onSuccess={loadData} />
+                <div className="flex items-center gap-3">
+                    <UserStatusBadge status={u.status} />
+                    <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-800 hidden md:block" />
+                </div>
 
-                <button
-                  className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
-                  title="Encerrar Sessão Remotamente"
-                  onClick={() => alert(`Sessão de ${u.nome} encerrada.`)}
-                >
-                  <LogOut size={18} />
-                </button>
-              </div>
+                <div className="flex items-center gap-2">
+                    <BlockUserButton userId={u._id} status={u.status} onSuccess={loadData} />
+                    
+                    <button
+                    className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all border border-transparent hover:border-rose-100 dark:hover:border-rose-900/30"
+                    title="Encerrar Sessão Remotamente"
+                    onClick={() => alert(`Sessão de ${u.nome} encerrada.`)}
+                    >
+                    <LogOut size={18} />
+                    </button>
+                </div>
+                </div>
             </div>
-          ))}
+            ))}
         </div>
-      </div>
+        </div>
     </div>
   );
 }
