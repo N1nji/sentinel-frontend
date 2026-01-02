@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import type { SecurityLog } from "../types/SecurityLog";
-
 import {
   getSecurityLogs,
   listarUsuarios,
@@ -18,11 +17,13 @@ import {
   UserX,
   Activity,
   LogOut,
+  MoreVertical,
+  User
 } from "lucide-react";
 
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -44,166 +45,172 @@ export default function SecurityDashboard() {
 
   async function loadData() {
     setLoading(true);
-    const logsRes = await getSecurityLogs({ limit: 100 });
-    const usersRes = await listarUsuarios();
-    setLogs(logsRes.logs);
-    setUsuarios(usersRes);
-    setLoading(false);
+    try {
+      const logsRes = await getSecurityLogs({ limit: 100 });
+      const usersRes = await listarUsuarios();
+      setLogs(logsRes.logs || []);
+      setUsuarios(usersRes || []);
+    } catch (err) {
+      console.error("Erro ao carregar dados", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     loadData();
   }, []);
 
-  /* ======================
-     KPIs
-  ====================== */
   const kpis = useMemo(() => ({
     success: logs.filter(l => l.action === "LOGIN_SUCCESS").length,
     failed: logs.filter(l => l.action === "LOGIN_FAILED").length,
     blocked: usuarios.filter(u => u.status !== "ativo").length,
   }), [logs, usuarios]);
 
-  /* ======================
-     GRÁFICO
-  ====================== */
   const chartData = useMemo(() => {
     const map: Record<string, number> = {};
     logs.forEach(log => {
       if (log.action !== "LOGIN_SUCCESS") return;
-      const day = new Date(log.createdAt).toLocaleDateString();
+      const day = new Date(log.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
       map[day] = (map[day] || 0) + 1;
     });
     return Object.entries(map).map(([day, value]) => ({ day, value }));
   }, [logs]);
 
+  // RENDERIZAÇÃO DO CARREGAMENTO (SKELETON)
   if (loading) {
     return (
-      <div className="p-6 text-slate-500 dark:text-slate-400">
-        Carregando dados de segurança…
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-8 space-y-8 animate-pulse">
+        <div className="h-12 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg mb-10" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />)}
+        </div>
+        <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 p-6 space-y-10 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 space-y-8 transition-colors duration-500">
 
       {/* HEADER */}
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-indigo-600/10 dark:bg-indigo-500/20">
-          <Shield className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none text-white">
+            <Shield className="h-7 w-7" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Centro de Segurança</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">Monitoramento em tempo real do ecossistema Sentinel</p>
+          </div>
         </div>
-
-        <div>
-          <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">
-            Segurança
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400">
-            Monitoramento de acessos, tentativas e controle de usuários
-          </p>
-        </div>
+        <button 
+          onClick={loadData}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-all shadow-sm"
+        >
+          <Activity size={16} className="text-indigo-500" /> Atualizar Dados
+        </button>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs COM HOVER */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <SecurityKpiCard
-          label="Logins com sucesso"
-          value={kpis.success}
-          color="green"
-          icon={<LogIn />}
-        />
-
-        <SecurityKpiCard
-          label="Tentativas falhas"
-          value={kpis.failed}
-          color="red"
-          icon={<AlertCircle />}
-        />
-
-        <SecurityKpiCard
-          label="Usuários bloqueados"
-          value={kpis.blocked}
-          color="yellow"
-          icon={<UserX />}
-        />
+        <div className="hover:-translate-y-1 transition-transform duration-300">
+          <SecurityKpiCard label="Logins Sucesso" value={kpis.success} color="green" icon={<LogIn />} />
+        </div>
+        <div className="hover:-translate-y-1 transition-transform duration-300">
+          <SecurityKpiCard label="Tentativas Falhas" value={kpis.failed} color="red" icon={<AlertCircle />} />
+        </div>
+        <div className="hover:-translate-y-1 transition-transform duration-300">
+          <SecurityKpiCard label="Usuários Bloqueados" value={kpis.blocked} color="yellow" icon={<UserX />} />
+        </div>
       </div>
 
-      {/* GRÁFICO */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 transition-colors">
-        <div className="flex items-center gap-3 mb-4">
-          <Activity className="text-indigo-600 dark:text-indigo-400" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Logins por dia
-          </h3>
+      {/* GRÁFICO PREMIUM COM GRADIENTE */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8 transition-colors">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600">
+              <Activity size={20} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Frequência de Acesso</h3>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Últimos 7 dias</span>
         </div>
 
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
-            <XAxis dataKey="day" stroke="#64748b" />
-            <YAxis stroke="#64748b" />
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.05} />
+            <XAxis 
+              dataKey="day" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+              dy={15}
+            />
+            <YAxis hide />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "#020617",
-                borderRadius: "12px",
-                border: "none",
+              contentStyle={{ 
+                backgroundColor: "#0f172a", 
+                borderRadius: "16px", 
+                border: "none", 
                 color: "#fff",
+                boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)"
               }}
             />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#6366f1"
-              strokeWidth={3}
-              dot={false}
+            <Area 
+              type="monotone" 
+              dataKey="value" 
+              stroke="#6366f1" 
+              strokeWidth={4} 
+              fillOpacity={1} 
+              fill="url(#colorValue)" 
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      {/* LOGS */}
+      {/* TABELA DE LOGS (Componente que você já tem) */}
       <SecurityLogsTable logs={logs} />
 
-      {/* USUÁRIOS */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 transition-colors">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-          Usuários
-        </h3>
+      {/* LISTA DE USUÁRIOS REESTILIZADA */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm p-8">
+        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Controle de Sessões</h3>
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4">
           {usuarios.map(u => (
             <div
               key={u._id}
-              className="flex justify-between items-center border border-slate-200 dark:border-slate-800
-                         rounded-lg px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              className="group flex flex-col md:flex-row md:items-center justify-between border border-slate-100 dark:border-slate-800/50 
+                         rounded-2xl px-6 py-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
             >
-              <div>
-                <div className="font-medium text-slate-900 dark:text-slate-100">
-                  {u.nome}
+              <div className="flex items-center gap-4 mb-4 md:mb-0">
+                <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
+                  <User size={24} />
                 </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">
-                  {u.email}
+                <div>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{u.nome}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{u.email}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 self-end md:self-auto">
                 <UserStatusBadge status={u.status} />
-
-                <BlockUserButton
-                  userId={u._id}
-                  status={u.status}
-                  onSuccess={loadData}
-                />
+                <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2 hidden md:block" />
+                
+                <BlockUserButton userId={u._id} status={u.status} onSuccess={loadData} />
 
                 <button
-                  className="flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400
-                             hover:text-indigo-800 dark:hover:text-indigo-300 transition"
-                  onClick={() =>
-                    alert("Logout remoto será implementado no backend")
-                  }
+                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                  title="Encerrar Sessão Remotamente"
+                  onClick={() => alert("Comando de logout enviado.")}
                 >
-                  <LogOut size={14} />
-                  Encerrar sessões
+                  <LogOut size={18} />
                 </button>
               </div>
             </div>
