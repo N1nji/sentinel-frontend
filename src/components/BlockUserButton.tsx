@@ -17,29 +17,24 @@ export default function BlockUserButton({
   onSuccess,
 }: BlockUserButtonProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const isActive = status === "ativo";
 
   async function handleConfirm() {
-    try {
-      setLoading(true);
-
-      if (isActive) {
-        await bloquearUsuario(userId);
-      } else {
-        await desbloquearUsuario(userId);
-      }
-
-      setOpen(false);
-      onSuccess?.();
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao alterar status do usuário");
-    } finally {
-      setLoading(false);
+  try {
+    if (isActive) {
+      await bloquearUsuario(userId);
+    } else {
+      await desbloquearUsuario(userId);
     }
+
+    setOpen(false);
+    onSuccess?.();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao alterar status do usuário");
   }
+}
 
   return (
     <>
