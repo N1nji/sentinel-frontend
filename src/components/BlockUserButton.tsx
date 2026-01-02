@@ -5,7 +5,7 @@ import {
   desbloquearUsuario,
 } from "../services/securityService";
 
-import { UserX, UserCheck } from "lucide-react";
+import { UserX, UserCheck, Loader2 } from "lucide-react";
 
 interface BlockUserButtonProps {
   userId: string;
@@ -26,18 +26,16 @@ export default function BlockUserButton({
   async function handleConfirm(): Promise<void> {
     try {
       setLoading(true);
-
       if (isActive) {
         await bloquearUsuario(userId);
       } else {
         await desbloquearUsuario(userId);
       }
-
       setOpen(false);
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      alert("Erro ao alterar status do usuário");
+      // Aqui você poderia disparar um Toast de erro
     } finally {
       setLoading(false);
     }
@@ -49,23 +47,25 @@ export default function BlockUserButton({
         type="button"
         onClick={() => setOpen(true)}
         disabled={loading}
-        className={[
-          "inline-flex items-center gap-2",
-          "px-3 py-1.5 rounded-md text-xs font-semibold",
-          "transition-colors",
-          "disabled:opacity-60 disabled:cursor-not-allowed",
-          isActive
-            ? "border border-red-300 text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10"
-            : "border border-green-300 text-green-700 hover:bg-green-50 dark:border-green-500/40 dark:text-green-400 dark:hover:bg-green-500/10",
-        ].join(" ")}
+        className={`
+          inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold
+          transition-all duration-200 active:scale-95
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${isActive 
+            ? "bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-600 hover:text-white dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 dark:hover:bg-rose-600 dark:hover:text-white" 
+            : "bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 dark:hover:bg-emerald-600 dark:hover:text-white"
+          }
+        `}
       >
-        {isActive ? (
+        {loading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : isActive ? (
           <UserX className="h-3.5 w-3.5" />
         ) : (
           <UserCheck className="h-3.5 w-3.5" />
         )}
 
-        {isActive ? "Bloquear" : "Desbloquear"}
+        <span>{loading ? "Processando..." : isActive ? "Bloquear" : "Desbloquear"}</span>
       </button>
 
       <ConfirmDialog
@@ -73,10 +73,10 @@ export default function BlockUserButton({
         title={isActive ? "Bloquear usuário?" : "Desbloquear usuário?"}
         description={
           isActive
-            ? "Esse usuário perderá acesso imediatamente ao sistema."
-            : "Esse usuário poderá acessar o sistema novamente."
+            ? "O usuário perderá o acesso ao sistema imediatamente. Todas as sessões ativas serão invalidadas no próximo request."
+            : "O acesso do usuário será restaurado e ele poderá realizar login novamente."
         }
-        confirmText={isActive ? "Bloquear" : "Desbloquear"}
+        confirmText={isActive ? "Sim, Bloquear" : "Sim, Desbloquear"}
         danger={isActive}
         onCancel={() => setOpen(false)}
         onConfirm={handleConfirm}
