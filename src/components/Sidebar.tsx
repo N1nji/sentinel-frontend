@@ -117,7 +117,22 @@ export default function Sidebar() {
               <UsersIcon size={20} /> Usuários
             </NavLink>
           )}
+          {isAdmin && (
+              <NavLink
+                to="/security"
+                onClick={() => setIsOpen(false)}
+                className={({ isActive }) => linkClass(isActive)}
+              >
+                <ShieldCheckIcon size={20} />
+                <span className="flex-1">Segurança</span>
 
+                {/* BADGE ADMIN */}
+                <span className="ml-auto text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600/20 text-rose-400">
+                  ADMIN
+                </span>
+              </NavLink>
+            )}
+            
           <NavLink to="/colaboradores" onClick={() => setIsOpen(false)} className={({ isActive }) => linkClass(isActive)}>
             <GroupIcon size={20} /> Colaboradores
           </NavLink>

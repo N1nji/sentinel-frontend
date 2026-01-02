@@ -14,6 +14,8 @@ import ChatPage from "./pages/Chat";
 import Relatorios from "./pages/Relatorios";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import SecurityDashboard from "./pages/SecurityDashboard";
+import AdminRoute from "./components/AdminRoute";
 import { ThemeProvider } from "./context/ThemeContext";
 
 export default function App() {
@@ -23,6 +25,15 @@ export default function App() {
       <Routes>
         {/* Rota pública */}
         <Route path="/login" element={<Login />} />
+
+        <Route
+          path="security"
+          element={
+            <AdminRoute>
+              <SecurityDashboard />
+            </AdminRoute>
+          }
+        />
 
         {/* Rotas protegidas com layout */}
         <Route
@@ -35,7 +46,11 @@ export default function App() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardAdvanced />} />
+
+          <Route path="security" element={<SecurityDashboard />} />
+
           <Route path="setores" element={<Setores />} />
+          
 
           {/* NOVA ROTA DE GESTÃO DE USUÁRIOS */}
           <Route path="usuarios" element={<Usuarios />} />
