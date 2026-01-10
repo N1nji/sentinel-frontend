@@ -298,9 +298,9 @@ export default function DashboardAdvanced() {
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard label="Total de Entregas" value={data.kpis.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend={calculateTrend(data.kpis.totalEntregas, "entregas")}/>
-        <KpiCard label="Itens Monitorados" value={data.kpis.totalUnidades} color="emerald" icon={<PackageSearch size={24} />} trend={calculateTrend(data.kpis.totalUnidades, "itens")}/>
-        <KpiCard label="Investimento Est." value={`R$ ${(data.kpis.totalUnidades * 18.5).toLocaleString()}`} color="blue" icon={<DollarSign size={24} />} trend={calculateTrend(Math.floor(data.kpis.totalUnidades * 18.5), "money")}/>
+        <KpiCard label="Total de Entregas" value={data?.kpis?.totalEntregas} color="indigo" icon={<ClipboardList size={24} />} trend={calculateTrend(data?.kpis?.totalEntregas, "entregas")}/>
+        <KpiCard label="Itens Monitorados" value={data?.kpis?.totalUnidades} color="emerald" icon={<PackageSearch size={24} />} trend={calculateTrend(data?.kpis?.totalUnidades, "itens")}/>
+        <KpiCard label="Investimento Est." value={`R$ ${(data?.kpis?.totalUnidades * 18.5).toLocaleString()}`} color="blue" icon={<DollarSign size={24} />} trend={calculateTrend(Math.floor(data?.kpis?.totalUnidades * 18.5), "money")}/>
         <KpiCard label="Itens em Crítico" value={data.estoqueCritico.length} color="rose" icon={<AlertOctagon size={24} />} trend={data.estoqueCritico.length > 0 ? "Ação Requerida" : "Estável"}/>
       </div>
 
