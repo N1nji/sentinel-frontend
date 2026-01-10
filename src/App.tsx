@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
-import { Toaster } from "./components/Toaster";
+import { Toaster } from "sonner";
 
 // Layouts e Componentes de Rota
 import MainLayout from "./layout/MainLayout";
@@ -30,7 +30,7 @@ export default function App() {
         position="top-right"
         closeButton
         />
-        
+
       <BrowserRouter>
         <Routes>
           {/* Rota pública */}
