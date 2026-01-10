@@ -30,8 +30,8 @@ export async function getSecurityLogs(params?: {
    BLOQUEAR / DESBLOQUEAR
 ========================== */
 export async function bloquearUsuario(userId: string) {
-  const res = await axios.put(
-    `${API_URL}/usuarios/${userId}/bloquear`,
+  const res = await axios.post(
+    `${API_URL}/sessions/usuarios/${userId}/bloquear`,
     {},
     { headers: authHeaders() }
   );
@@ -39,8 +39,20 @@ export async function bloquearUsuario(userId: string) {
 }
 
 export async function desbloquearUsuario(userId: string) {
-  const res = await axios.put(
-    `${API_URL}/usuarios/${userId}/desbloquear`,
+  const res = await axios.post(
+    `${API_URL}/sessions/usuarios/${userId}/desbloquear`,
+    {},
+    { headers: authHeaders() }
+  );
+  return res.data;
+}
+
+/* ==========================
+   LOGOUT REMOTO
+========================== */
+export async function encerrarSessao(userId: string) {
+  const res = await axios.post(
+    `${API_URL}/sessions/logout/${userId}`,
     {},
     { headers: authHeaders() }
   );

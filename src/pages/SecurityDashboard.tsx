@@ -3,6 +3,7 @@ import type { SecurityLog } from "../types/SecurityLog";
 import {
   getSecurityLogs,
   listarUsuarios,
+  encerrarSessao,
 } from "../services/securityService";
 
 import SecurityKpiCard from "../components/SecurityKpiCard";
@@ -225,8 +226,16 @@ export default function SecurityDashboard() {
                     <button
                     className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all border border-transparent hover:border-rose-100 dark:hover:border-rose-900/30"
                     title="Encerrar Sessão Remotamente"
-                    onClick={() => alert(`Sessão de ${u.nome} encerrada.`)}
-                    >
+                    onClick={async () => {
+                            try {
+                              await encerrarSessao(u._id);
+                              await loadData(); // 🔄 atualiza dashboard
+                            } catch (err) {
+                              console.error(err);
+                              alert("Erro ao encerrar sessão");
+                            }
+                          }}
+                        >
                     <LogOut size={18} />
                     </button>
                 </div>
