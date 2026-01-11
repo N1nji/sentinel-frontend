@@ -174,7 +174,8 @@ export default function SecurityDashboard() {
 
         <div className="grid grid-cols-1 gap-4">
           {usuarios.map(u => {
-            const podeGerenciar = u.tipo !== "admin" || isAdminMaster;
+            const isAdmin = u.tipo === "admin";
+            const podeGerenciar = !isAdmin || isAdminMaster;
 
             return (
               <div
