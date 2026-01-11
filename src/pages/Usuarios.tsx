@@ -63,7 +63,7 @@ export default function Usuarios() {
       const res = await api.get("/usuarios", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsuarios(res.data);
+      setUsuarios(res.data.usuarios);
     } catch (err) {
       console.error("Erro ao carregar usuários");
     }
