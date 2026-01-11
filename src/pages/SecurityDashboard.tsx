@@ -48,9 +48,12 @@ export default function SecurityDashboard() {
   const [loading, setLoading] = useState(true);
 
   // 🔐 Admin master
-  const loggedUser = JSON.parse(localStorage.getItem("usuario") || "{}");
+  const loggedUserRaw = localStorage.getItem("usuario");
+  const loggedUser = loggedUserRaw ? JSON.parse(loggedUserRaw) : null;
   const MASTER_ADMIN_EMAIL = import.meta.env.VITE_MASTER_ADMIN_EMAIL;
-  const isAdminMaster = loggedUser?.email === MASTER_ADMIN_EMAIL;
+  const isAdminMaster =
+  Boolean(loggedUser?.email) &&
+  loggedUser.email === MASTER_ADMIN_EMAIL;
 
   async function loadData() {
     setLoading(true);
