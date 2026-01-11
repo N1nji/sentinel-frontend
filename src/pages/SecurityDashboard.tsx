@@ -48,12 +48,8 @@ export default function SecurityDashboard() {
   const [loading, setLoading] = useState(true);
 
   // 🔐 Admin master
-  const loggedUserRaw = localStorage.getItem("usuario");
-  const loggedUser = loggedUserRaw ? JSON.parse(loggedUserRaw) : null;
-  const MASTER_ADMIN_EMAIL = import.meta.env.VITE_MASTER_ADMIN_EMAIL;
-  const isAdminMaster =
-  Boolean(loggedUser?.email) &&
-  loggedUser.email === MASTER_ADMIN_EMAIL;
+  const [isAdminMaster, setIsAdminMaster] = useState(false);
+
 
   async function loadData() {
     setLoading(true);
@@ -61,7 +57,8 @@ export default function SecurityDashboard() {
       const logsRes = await getSecurityLogs({ limit: 100 });
       const usersRes = await listarUsuarios();
       setLogs(logsRes.logs || []);
-      setUsuarios(usersRes || []);
+      setUsuarios(usersRes.usuarios || []);
+      setIsAdminMaster(!!usersRes.isAdminMaster);
     } catch (err) {
       toast.error("Erro ao carregar dados de segurança");
     } finally {
