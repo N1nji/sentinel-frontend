@@ -49,7 +49,8 @@ export default function SecurityDashboard() {
 
   // 🔐 Admin master
   const loggedUser = JSON.parse(localStorage.getItem("usuario") || "{}");
-  const isAdminMaster = loggedUser?.email === "SEU_EMAIL_ADMIN@EMAIL.COM";
+  const MASTER_ADMIN_EMAIL = import.meta.env.VITE_MASTER_ADMIN_EMAIL;
+  const isAdminMaster = loggedUser?.email === MASTER_ADMIN_EMAIL;
 
   async function loadData() {
     setLoading(true);
