@@ -17,7 +17,7 @@ export interface SecurityLog {
   action: string;
   email?: string;
   ip: string;
-  userAgent?: string; // opcional
+  userAgent?: string;
   createdAt: string;
   userId?: {
     _id: string;

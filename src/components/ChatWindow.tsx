@@ -1,5 +1,7 @@
 // src/components/ChatWindow.tsx
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { getChat, enviarMensagem, renomearChat, exportChatPdf } from "../services/chatService";
 import { useTheme } from "../context/ThemeContext";
 import { 
@@ -62,8 +64,8 @@ async function handleSend() {
   setLoading(true);
 
   try {
-    // Chama o seu service de chat padrão. 
-    // Como seu backend já tem a IA integrada, ele vai salvar e responder de uma vez.
+    // Chama o service de chat padrão. 
+    // Como backend já tem a IA integrada, aqui vai salvar e responder de uma vez.
     const res = await enviarMensagem(chatId, msg);
     
     // Atualiza o chat com o que o banco devolveu (pergunta + resposta certa)
@@ -162,7 +164,11 @@ async function handleSend() {
                 <span className={`text-[9px] font-black uppercase mb-1 block opacity-60 tracking-widest`}>
                   {m.role === "user" ? "Operador" : "Sentinel AI"}
                 </span>
-                <div className="whitespace-pre-wrap">{m.content}</div>
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.content}
+                    </ReactMarkdown>
+                  </div>
               </div>
             </div>
           ))}

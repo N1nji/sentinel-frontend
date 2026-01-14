@@ -54,7 +54,6 @@ export default function Usuarios() {
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itensPorPagina = 8;
 
-  // ✨ A MÁGICA ACONTECE AQUI
   const [emailLogado, setEmailLogado] = useState("");
   const token = localStorage.getItem("token");
 
@@ -70,7 +69,7 @@ export default function Usuarios() {
   }
 
   useEffect(() => {
-    // 🔥 Extrai o e-mail do token assim que o componente carrega
+    //  Extrai o e-mail do token assim que o componente carrega
     if (token) {
       try {
         const decoded = jwtDecode<TokenPayload>(token);

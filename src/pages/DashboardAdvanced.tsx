@@ -260,7 +260,7 @@ export default function DashboardAdvanced() {
            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Inteligência em Segurança do Trabalho</p>
         </div>
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-          <Calendar size={14} className="self-center mx-2 text-slate-400" /> {/* 🔹 Exemplo de uso do Calendar */}
+          <Calendar size={14} className="self-center mx-2 text-slate-400" /> {/* Exemplo de uso do Calendar */}
           {[
             { l: '7D', v: 7 },
             { l: '30D', v: 30 },

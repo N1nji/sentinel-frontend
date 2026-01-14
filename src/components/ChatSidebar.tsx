@@ -6,7 +6,7 @@ import {
   deletarChat,
   renomearChat,
 } from "../services/chatService";
-import { useTheme } from "../context/ThemeContext"; // Melhoria 1: Import do Tema
+import { useTheme } from "../context/ThemeContext"; // Import do Tema
 import {
   EllipsisVerticalIcon,
   TrashIcon,
@@ -24,7 +24,7 @@ export default function ChatSidebar({
   onSelect: (id: string) => void;
   activeId?: string | null;
 }) {
-  const { darkMode } = useTheme(); // 🔹 Melhoria 1: Consumindo o modo escuro
+  const { darkMode } = useTheme(); // Melhoria 1: Consumindo o modo escuro
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);

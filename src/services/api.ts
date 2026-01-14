@@ -7,7 +7,7 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// 🔐 INTERCEPTOR GLOBAL — LOGOUT REMOTO
+// INTERCEPTOR GLOBAL — LOGOUT REMOTO
 api.interceptors.response.use(
   (response) => response,
   (error) => {

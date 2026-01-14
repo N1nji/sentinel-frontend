@@ -85,7 +85,7 @@ export default function AiChatModal({ open, onClose }: any) {
           `}>
             <ChatWindow 
               chatId={selectedChatId} 
-              onBack={() => setSelectedChatId(null)} // 🔹 Permite voltar para a lista no mobile
+              onBack={() => setSelectedChatId(null)} // Permite voltar para a lista no mobile
             />
           </div>
         </div>

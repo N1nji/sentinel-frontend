@@ -38,7 +38,7 @@ export async function chatLivre(mensagem: string): Promise<string> {
 }
 
 // ================================
-// 🧠 IA — CHAT COM CONTEXTO DO SISTEMA
+// IA — CHAT COM CONTEXTO DO SISTEMA
 // (colaboradores, setores, EPIs, NR-38)
 // ================================
 export async function chatComContext(mensagem: string, historico: IHistorico[] = []

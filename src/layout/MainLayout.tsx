@@ -20,7 +20,7 @@ export default function MainLayout() {
         <main className={`flex-1 p-4 sm:p-6 overflow-auto custom-scrollbar transition-colors duration-300 ${
           darkMode ? "bg-slate-950" : "bg-gray-50"
         }`}>
-          {/* O segredo: pb-24 (mobile) e lg:pb-12 (desktop). 
+          {/* pb-24 (mobile) e lg:pb-12 (desktop). 
               Isso cria um espaço vazio no final de toda página, 
               permitindo que os botões de paginação subam e fiquem visíveis.
           */}
@@ -29,7 +29,7 @@ export default function MainLayout() {
           </div>
         </main>
 
-        {/* Botão da IA posicionado de forma inteligente:
+        {/* Botão da IA posicionado de forma que:
             No mobile ele fica mais centralizado/espaçado, 
             no desktop ele se aloca no canto.
         */}

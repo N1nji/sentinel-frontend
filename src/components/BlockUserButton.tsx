@@ -35,7 +35,6 @@ export default function BlockUserButton({
       if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      // Aqui você poderia disparar um Toast de erro
     } finally {
       setLoading(false);
     }
